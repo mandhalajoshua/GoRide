@@ -1,0 +1,1855 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RideFlow — Your Ride. Your Way.</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=DM+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<style>
+  :root {
+    --bg: #f1f1d5;
+    --bg-soft: #F2F1E7;
+    --surface: #FFFFFF;
+    --surface-2: #FAF9E9;
+    --border: rgba(31, 36, 33, 0.08);
+    --border-strong: rgba(255, 107, 53, 0.35);
+    --fg: #1F2421;
+    --muted: #6B7268;
+    --accent: #FF6B35;
+    --accent-2: #3A86FF;
+    --accent-3: #FFB627;
+    --success: #2E7D32;
+    --hud-bg: #050a0f;
+    --hud-green: #00ff9d;
+    --hud-cyan: #00f3ff;
+    --hud-orange: #ff6b35;
+  }
+  * { -webkit-font-smoothing: antialiased; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg);
+    color: var(--fg);
+    font-family: 'DM Sans', system-ui, sans-serif;
+    overflow-x: hidden;
+  }
+  .font-display { font-family: 'Space Grotesk', sans-serif; letter-spacing: -0.02em; }
+
+  .bg-grid {
+    background-image:
+      linear-gradient(rgba(31,36,33,0.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(31,36,33,0.04) 1px, transparent 1px);
+    background-size: 60px 60px;
+  }
+  .glow-coral { background: radial-gradient(circle, rgba(255,107,53,0.15) 0%, transparent 60%); filter: blur(60px); }
+  .glow-blue { background: radial-gradient(circle, rgba(58,134,255,0.15) 0%, transparent 60%); filter: blur(60px); }
+
+  @keyframes breath {
+    0%, 100% { transform: scale(1); filter: drop-shadow(0 20px 30px rgba(31,36,33,0.1)); }
+    50% { transform: scale(1.04); filter: drop-shadow(0 30px 40px rgba(255,107,53,0.2)); }
+  }
+  .breathing { animation: breath 4s ease-in-out infinite; }
+
+  @keyframes breath-ring {
+    0%, 100% { transform: scale(1); opacity: 0.4; }
+    50% { transform: scale(1.08); opacity: 0.6; }
+  }
+  .breathing-ring { animation: breath-ring 4s ease-in-out infinite; }
+
+  .navbar { transition: all .4s ease; }
+  .navbar.scrolled {
+    background: rgba(241, 241, 213, 0.85);
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    border-bottom: 1px solid var(--border);
+    box-shadow: 0 4px 20px rgba(0,0,0,0.02);
+  }
+  .nav-link { position: relative; transition: color .3s; color: var(--muted); }
+  .nav-link::after {
+    content:''; position:absolute; bottom:-6px; left:0; width:0; height:2px;
+    background: var(--accent); transition: width .3s ease;
+  }
+  .nav-link:hover { color: var(--fg); }
+  .nav-link:hover::after { width: 100%; }
+  .nav-link.active { color: var(--fg); }
+  .nav-link.active::after { width: 100%; }
+
+  .btn-primary {
+    background: var(--accent); color: #fff; font-weight: 700;
+    transition: all .3s cubic-bezier(.2,.8,.2,1);
+    box-shadow: 0 4px 14px -4px rgba(255,107,53,0.4);
+  }
+  .btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 25px -8px rgba(255,107,53,0.5);
+  }
+  .btn-ghost {
+    border: 1px solid var(--border); color: var(--fg);
+    transition: all .3s; background: var(--surface);
+  }
+  .btn-ghost:hover { border-color: var(--accent); color: var(--accent); }
+
+  .reveal-word { display: inline-block; overflow: hidden; vertical-align: top; }
+  .reveal-word > span {
+    display: inline-block; transform: translateY(110%); opacity: 0;
+    animation: wordUp 1s cubic-bezier(.2,.8,.2,1) forwards;
+  }
+  @keyframes wordUp { to { transform: translateY(0); opacity: 1; } }
+  .fade-in { opacity: 0; animation: fadeIn 1s ease forwards; }
+  @keyframes fadeIn { to { opacity: 1; } }
+
+  .float { animation: float 6s ease-in-out infinite; }
+  @keyframes float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-14px); } }
+
+  .wheel-spin { transform-box: fill-box; transform-origin: center; animation: spin 1.2s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .particle {
+    position: absolute; border-radius: 50%; pointer-events: none;
+    background: var(--accent); opacity: 0.4;
+    animation: particleFloat linear infinite;
+  }
+  @keyframes particleFloat {
+    0% { transform: translateY(0) translateX(0); opacity: 0; }
+    10% { opacity: 0.6; }
+    90% { opacity: 0.6; }
+    100% { transform: translateY(-100vh) translateX(40px); opacity: 0; }
+  }
+
+  .booking-card {
+    background: var(--surface);
+    backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+    border: 1px solid var(--border);
+    box-shadow: 0 30px 60px -30px rgba(31,36,33,0.15), 0 0 0 1px rgba(255,255,255,0.5) inset;
+  }
+  .ride-option {
+    background: var(--bg-soft);
+    border: 1px solid var(--border);
+    transition: all .3s cubic-bezier(.2,.8,.2,1);
+    cursor: pointer; position: relative; overflow: hidden;
+  }
+  .ride-option::before {
+    content:''; position:absolute; inset:0;
+    background: linear-gradient(135deg, rgba(255,107,53,0.1), transparent);
+    opacity: 0; transition: opacity .3s;
+  }
+  .ride-option:hover { transform: translateY(-3px); border-color: var(--border-strong); box-shadow: 0 10px 20px -10px rgba(0,0,0,0.1); }
+  .ride-option:hover::before { opacity: 1; }
+  .ride-option.active {
+    border-color: var(--accent);
+    background: #fff;
+    box-shadow: 0 0 0 3px rgba(255,107,53,0.15), 0 12px 24px -10px rgba(255,107,53,0.2);
+  }
+  .ride-option.active::before { opacity: 1; }
+  .ride-option.active .ride-icon { color: var(--accent); }
+
+  .service-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    transition: transform .5s cubic-bezier(.2,.8,.2,1), border-color .3s, box-shadow .5s;
+    transform-style: preserve-3d;
+    position: relative; overflow: hidden;
+    box-shadow: 0 10px 30px -15px rgba(0,0,0,0.1);
+  }
+  .service-card::after {
+    content:''; position:absolute; top:-50%; left:-50%; width:200%; height:200%;
+    background: radial-gradient(circle at center, rgba(255,107,53,0.08), transparent 50%);
+    opacity: 0; transition: opacity .5s; pointer-events:none;
+  }
+  .service-card:hover {
+    transform: translateY(-8px) rotateX(4deg) rotateY(-4deg);
+    border-color: var(--border-strong);
+    box-shadow: 0 30px 60px -20px rgba(31,36,33,0.15);
+  }
+  .service-card:hover::after { opacity: 1; }
+  .service-icon-wrap { transition: transform .5s cubic-bezier(.2,.8,.2,1); }
+  .service-card:hover .service-icon-wrap { transform: translateZ(30px) scale(1.1); }
+
+  .step-line {
+    background: linear-gradient(90deg, var(--accent), var(--accent-2), transparent);
+    height: 2px; position: relative; overflow: hidden;
+  }
+  .step-line::after {
+    content:''; position:absolute; inset:0;
+    background: linear-gradient(90deg, transparent, var(--accent-3), transparent);
+    animation: lineFlow 2.5s linear infinite;
+  }
+  @keyframes lineFlow { from { transform: translateX(-100%); } to { transform: translateX(100%); } }
+
+  /* ===== HOLOGRAPHIC HUD MAP (LIVE RIDE EXPERIENCE) ===== */
+  .hud-container {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 16/10;
+    background: var(--hud-bg);
+    border-radius: 24px;
+    overflow: hidden;
+    box-shadow: 0 0 0 1px rgba(0, 255, 157, 0.3), 0 0 40px rgba(0, 255, 157, 0.15), 0 40px 80px -20px rgba(0,0,0,0.8);
+  }
+
+  .hud-map-image {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    opacity: 0.5;
+    filter: grayscale(1) contrast(1.2) brightness(0.8);
+    /* Fallback */
+    background-color: #0a1520;
+    background-image: url('https://images.unsplash.com/photo-1583897553631-0953c1c5c8c0?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80');
+    background-size: cover;
+    background-position: center;
+  }
+
+  .hud-overlay {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: radial-gradient(circle at center, transparent 0%, rgba(5, 10, 15, 0.8) 100%);
+  }
+
+  .hud-grid {
+    position: absolute;
+    inset: 0;
+    background-image: 
+      linear-gradient(rgba(0, 255, 157, 0.15) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0, 255, 157, 0.15) 1px, transparent 1px);
+    background-size: 40px 40px;
+    background-position: center;
+    box-shadow: inset 0 0 100px rgba(0, 255, 157, 0.1);
+  }
+
+  .hud-scanline {
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 100%;
+    background: linear-gradient(to bottom, transparent 0%, rgba(0, 255, 157, 0.1) 50%, transparent 100%);
+    animation: scanline 6s linear infinite;
+    opacity: 0.6;
+    mix-blend-mode: screen;
+  }
+  @keyframes scanline {
+    0% { transform: translateY(-100%); }
+    100% { transform: translateY(100%); }
+  }
+
+  .hud-route-remaining {
+    fill: none;
+    stroke: var(--hud-orange);
+    stroke-width: 4;
+    stroke-linecap: round;
+    stroke-dasharray: 12 8;
+    filter: drop-shadow(0 0 6px var(--hud-orange));
+    animation: dashMove 1.5s linear infinite;
+  }
+  @keyframes dashMove { to { stroke-dashoffset: -20; } }
+
+  .hud-route-traveled {
+    fill: none;
+    stroke: var(--hud-cyan);
+    stroke-width: 3;
+    stroke-linecap: round;
+    filter: drop-shadow(0 0 8px var(--hud-cyan));
+  }
+
+  .hud-cursor {
+    filter: drop-shadow(0 0 12px var(--hud-green));
+  }
+  
+  /* Targeting Reticle Animation */
+  @keyframes targetSweep {
+    0% { transform: scale(0.8); opacity: 0.8; }
+    100% { transform: scale(1.5); opacity: 0; }
+  }
+  .target-ring {
+    transform-origin: center;
+    transform-box: fill-box;
+    animation: targetSweep 2s ease-out infinite;
+  }
+  .target-ring-2 {
+    transform-origin: center;
+    transform-box: fill-box;
+    animation: targetSweep 2s ease-out infinite;
+    animation-delay: 1s;
+  }
+
+  /* UI Panels */
+  .hud-panel {
+    position: absolute;
+    background: rgba(5, 10, 15, 0.7);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(0, 255, 157, 0.3);
+    box-shadow: 0 0 15px rgba(0, 255, 157, 0.1);
+    color: var(--hud-green);
+    font-family: 'Space Grotesk', monospace;
+    z-index: 10;
+  }
+  
+  .hud-panel::before {
+    content: '';
+    position: absolute;
+    top: -1px; left: -1px;
+    width: 10px; height: 10px;
+    border-top: 2px solid var(--hud-green);
+    border-left: 2px solid var(--hud-green);
+  }
+  .hud-panel::after {
+    content: '';
+    position: absolute;
+    bottom: -1px; right: -1px;
+    width: 10px; height: 10px;
+    border-bottom: 2px solid var(--hud-green);
+    border-right: 2px solid var(--hud-green);
+  }
+
+  .hud-panel-orange {
+    border-color: rgba(255, 107, 53, 0.4);
+    box-shadow: 0 0 15px rgba(255, 107, 53, 0.15);
+    color: var(--hud-orange);
+  }
+  .hud-panel-orange::before { border-color: var(--hud-orange); }
+  .hud-panel-orange::after { border-color: var(--hud-orange); }
+
+  .feature-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    transition: all .4s ease;
+    box-shadow: 0 10px 30px -15px rgba(0,0,0,0.1);
+  }
+  .feature-card:hover {
+    transform: translateY(-4px);
+    border-color: var(--border-strong);
+    box-shadow: 0 20px 40px -15px rgba(0,0,0,0.15);
+  }
+
+  .shield-pulse { animation: shieldPulse 2.5s ease-in-out infinite; }
+  @keyframes shieldPulse {
+    0%,100% { filter: drop-shadow(0 0 8px rgba(255,107,53,0.3)); }
+    50% { filter: drop-shadow(0 0 20px rgba(255,107,53,0.5)); }
+  }
+  .shield-ring {
+    animation: shieldRing 3s ease-out infinite;
+    transform-origin: center;
+    transform-box: fill-box;
+  }
+  @keyframes shieldRing {
+    0% { transform: scale(0.8); opacity: 0.6; }
+    100% { transform: scale(1.6); opacity: 0; }
+  }
+
+  .phone-frame {
+    background: #1F2421;
+    border: 2px solid #2A2F2C;
+    border-radius: 40px;
+    padding: 10px;
+    box-shadow: 0 30px 60px -20px rgba(0,0,0,0.2), inset 0 0 0 2px rgba(255,255,255,0.05);
+  }
+  .phone-screen {
+    background: var(--bg-soft);
+    border-radius: 32px;
+    overflow: hidden;
+    position: relative;
+  }
+  .phone-notch {
+    position: absolute; top: 8px; left: 50%; transform: translateX(-50%);
+    width: 90px; height: 22px; background: #1F2421; border-radius: 12px; z-index: 5;
+  }
+  .phone-float { animation: phoneFloat 5s ease-in-out infinite; }
+  @keyframes phoneFloat {
+    0%,100% { transform: translateY(0); }
+    50% { transform: translateY(-12px); }
+  }
+
+  .stat-number {
+    background: linear-gradient(180deg, var(--fg), var(--accent));
+    -webkit-background-clip: text; background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .review-track { transition: transform .6s cubic-bezier(.2,.8,.2,1); }
+  .review-dot { transition: all .3s; cursor: pointer; }
+  .review-dot.active { background: var(--accent); width: 28px; }
+
+  .wave-bg {
+    position: absolute;
+    bottom: 0; left: 0; width: 100%; height: 50%;
+    overflow: hidden; z-index: 0;
+  }
+
+  .reveal { opacity: 0; transform: translateY(40px); transition: all .8s cubic-bezier(.2,.8,.2,1); }
+  .reveal.visible { opacity: 1; transform: translateY(0); }
+  .reveal-delay-1 { transition-delay: .1s; }
+  .reveal-delay-2 { transition-delay: .2s; }
+  .reveal-delay-3 { transition-delay: .3s; }
+  .reveal-delay-4 { transition-delay: .4s; }
+
+  .mobile-menu { transform: translateX(100%); transition: transform .4s cubic-bezier(.2,.8,.2,1); }
+  .mobile-menu.open { transform: translateX(0); }
+
+  ::-webkit-scrollbar { width: 10px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: #d1d1b5; border-radius: 10px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--accent); }
+  ::selection { background: var(--accent); color: #fff; }
+
+  .booking-input { background: var(--bg-soft); border-color: var(--border); }
+  .booking-input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(255,107,53,0.1); }
+
+  .toast { transform: translateY(120%); transition: transform .4s cubic-bezier(.2,.8,.2,1); }
+  .toast.show { transform: translateY(0); }
+
+  .slow-spin { animation: spin 18s linear infinite; }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+  }
+</style>
+</head>
+<body class="relative">
+
+<!-- ============ NAVBAR ============ -->
+<nav class="navbar fixed top-0 left-0 right-0 z-50 px-6 lg:px-10 py-4">
+  <div class="max-w-7xl mx-auto flex items-center justify-between">
+    <a href="#home" class="flex items-center gap-2.5">
+      <div class="w-9 h-9 rounded-lg flex items-center justify-center" style="background: linear-gradient(135deg, var(--accent), var(--accent-3));">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+          <path d="M3 14c3-6 7-9 12-9 4 0 6 3 6 6s-2 5-5 5h-3" stroke="#fff" stroke-width="2.5" stroke-linecap="round"/>
+          <circle cx="7" cy="17" r="3" stroke="#fff" stroke-width="2.5"/>
+          <circle cx="17" cy="17" r="3" stroke="#fff" stroke-width="2.5"/>
+        </svg>
+      </div>
+      <span class="font-display text-xl font-bold tracking-tight text-[var(--fg)]">RideFlow</span>
+    </a>
+
+    <div class="hidden lg:flex items-center gap-9 text-sm font-medium">
+      <a href="#home" class="nav-link active">Home</a>
+      <a href="#services" class="nav-link">Services</a>
+      <a href="#how" class="nav-link">How It Works</a>
+      <a href="#safety" class="nav-link">Safety</a>
+      <a href="#about" class="nav-link">About</a>
+      <a href="#contact" class="nav-link">Contact</a>
+    </div>
+
+    <div class="hidden lg:flex items-center gap-3">
+      <button class="text-sm font-medium text-[var(--muted)] hover:text-[var(--fg)] transition px-4 py-2">Login</button>
+      <button class="btn-primary text-sm px-5 py-2.5 rounded-full">Sign Up</button>
+    </div>
+
+    <button id="menuBtn" class="lg:hidden w-10 h-10 flex items-center justify-center rounded-lg border border-[var(--border)] bg-white">
+      <i class="fa-solid fa-bars text-[var(--fg)]"></i>
+    </button>
+  </div>
+</nav>
+
+<!-- Mobile menu -->
+<div id="mobileMenu" class="mobile-menu fixed top-0 right-0 bottom-0 w-[80%] max-w-sm z-50 lg:hidden p-6" style="background: var(--surface); border-left: 1px solid var(--border);">
+  <div class="flex items-center justify-between mb-10">
+    <span class="font-display text-xl font-bold text-[var(--fg)]">RideFlow</span>
+    <button id="closeMenu" class="w-10 h-10 flex items-center justify-center rounded-lg border border-[var(--border)]">
+      <i class="fa-solid fa-xmark text-[var(--fg)]"></i>
+    </button>
+  </div>
+  <div class="flex flex-col gap-5 text-lg">
+    <a href="#home" class="mobile-link text-[var(--fg)] font-semibold">Home</a>
+    <a href="#services" class="mobile-link text-[var(--muted)]">Services</a>
+    <a href="#how" class="mobile-link text-[var(--muted)]">How It Works</a>
+    <a href="#safety" class="mobile-link text-[var(--muted)]">Safety</a>
+    <a href="#about" class="mobile-link text-[var(--muted)]">About</a>
+    <a href="#contact" class="mobile-link text-[var(--muted)]">Contact</a>
+  </div>
+  <div class="mt-10 flex flex-col gap-3">
+    <button class="btn-ghost py-3 rounded-full text-sm font-medium">Login</button>
+    <button class="btn-primary py-3 rounded-full text-sm">Sign Up</button>
+  </div>
+</div>
+
+<!-- ============ HERO ============ -->
+<section id="home" class="relative min-h-screen pt-32 pb-20 overflow-hidden">
+  <div class="absolute inset-0 bg-grid opacity-40"></div>
+  <div class="absolute top-20 -left-40 w-[500px] h-[500px] glow-coral"></div>
+  <div class="absolute bottom-0 -right-40 w-[500px] h-[500px] glow-blue"></div>
+  <div id="particles" class="absolute inset-0 overflow-hidden"></div>
+
+  <div class="relative max-w-7xl mx-auto px-6 lg:px-10 grid lg:grid-cols-2 gap-12 items-center">
+    <div>
+      <div class="fade-in inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium mb-6" style="background: #fff; border: 1px solid var(--border-strong); color: var(--accent); box-shadow: 0 4px 10px rgba(0,0,0,0.05); animation-delay:.05s;">
+        <span class="w-2 h-2 rounded-full bg-[var(--accent)] animate-pulse"></span>
+        Now live in 50+ cities
+      </div>
+
+      <h1 class="font-display font-bold text-5xl md:text-6xl lg:text-7xl leading-[0.95] tracking-tight text-[var(--fg)]">
+        <span class="reveal-word"><span style="animation-delay:.1s">Move</span></span>
+        <span class="reveal-word"><span style="animation-delay:.2s">Freely.</span></span><br>
+        <span class="reveal-word"><span style="animation-delay:.35s">Ride</span></span>
+        <span class="reveal-word"><span style="animation-delay:.45s; background: linear-gradient(135deg, var(--accent), var(--accent-3)); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;">Anywhere.</span></span>
+      </h1>
+
+      <p class="fade-in mt-6 text-lg text-[var(--muted)] max-w-md" style="animation-delay:.7s">
+        Fast, affordable and reliable rides whenever you need them. Choose your ride, track your captain, and reach your destination with confidence.
+      </p>
+
+      <div class="fade-in flex flex-wrap gap-4 mt-8" style="animation-delay:.85s">
+        <button class="btn-primary px-7 py-3.5 rounded-full text-sm font-semibold flex items-center gap-2">
+          Book a Ride
+          <i class="fa-solid fa-arrow-right text-xs"></i>
+        </button>
+        <button class="btn-ghost px-7 py-3.5 rounded-full text-sm font-semibold flex items-center gap-2">
+          <i class="fa-solid fa-play text-xs"></i>
+          Explore Services
+        </button>
+      </div>
+
+      <div class="fade-in grid grid-cols-3 gap-6 mt-12 pt-8 border-t border-[var(--border)]" style="animation-delay:1s">
+        <div>
+          <div class="font-display text-2xl font-bold text-[var(--accent)]">3 min</div>
+          <div class="text-xs text-[var(--muted)] mt-1">Avg pickup</div>
+        </div>
+        <div>
+          <div class="font-display text-2xl font-bold text-[var(--accent)]">4.9★</div>
+          <div class="text-xs text-[var(--muted)] mt-1">User rating</div>
+        </div>
+        <div>
+          <div class="font-display text-2xl font-bold text-[var(--accent)]">24/7</div>
+          <div class="text-xs text-[var(--muted)] mt-1">Always on</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== HERO VISUAL WITH SLOW BREATHING ===== -->
+    <div class="relative h-[400px] md:h-[500px] lg:h-[560px]">
+      <div class="absolute inset-0 flex items-center justify-center">
+        <div class="breathing-ring w-[380px] h-[380px] rounded-full" style="background: radial-gradient(circle, rgba(255,107,53,0.15) 0%, transparent 70%);"></div>
+      </div>
+      <div class="absolute inset-0 flex items-center justify-center">
+        <div class="breathing-ring w-[300px] h-[300px] rounded-full" style="background: radial-gradient(circle, rgba(58,134,255,0.1) 0%, transparent 70%); animation-delay: 0.5s;"></div>
+      </div>
+
+      <div class="absolute inset-0 flex items-center justify-center">
+        <div class="w-[420px] h-[420px] rounded-full" style="background: conic-gradient(from 0deg, transparent, rgba(255,107,53,0.15), transparent 40%, rgba(58,134,255,0.1), transparent 70%); animation: spin 14s linear infinite;"></div>
+      </div>
+      <div class="absolute inset-0 flex items-center justify-center">
+        <div class="w-[320px] h-[320px] rounded-full border border-[var(--border)]"></div>
+      </div>
+
+      <div class="absolute top-8 left-0 float" style="animation-delay: 0s;">
+        <div class="booking-card rounded-2xl px-4 py-3 flex items-center gap-3">
+          <div class="w-10 h-10 rounded-full flex items-center justify-center" style="background: rgba(46,125,50,0.1);">
+            <i class="fa-solid fa-shield-halved text-[var(--success)]"></i>
+          </div>
+          <div>
+            <div class="text-xs text-[var(--muted)]">Verified Captain</div>
+            <div class="text-sm font-semibold text-[var(--fg)]">100% Background checked</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="absolute bottom-12 right-0 float" style="animation-delay: 1.5s;">
+        <div class="booking-card rounded-2xl px-4 py-3 flex items-center gap-3">
+          <div class="w-10 h-10 rounded-full flex items-center justify-center" style="background: rgba(255,107,53,0.1);">
+            <i class="fa-solid fa-bolt text-[var(--accent)]"></i>
+          </div>
+          <div>
+            <div class="text-xs text-[var(--muted)]">Arriving in</div>
+            <div class="text-sm font-semibold text-[var(--fg)]">2 min</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="absolute top-1/2 -translate-y-1/2 right-2 float" style="animation-delay: 0.8s;">
+        <div class="booking-card rounded-2xl px-4 py-3">
+          <div class="text-xs text-[var(--muted)] mb-1">Starting from</div>
+          <div class="font-display text-2xl font-bold text-[var(--accent)]">$2.49</div>
+        </div>
+      </div>
+
+      <div class="absolute inset-0 flex items-center justify-center">
+        <div class="breathing w-full h-full">
+          <svg viewBox="0 0 600 500" class="w-full h-full">
+            <defs>
+              <linearGradient id="bikeBody" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#FF6B35"/>
+                <stop offset="100%" stop-color="#E04565"/>
+              </linearGradient>
+              <linearGradient id="captainJacket" x1="0%" y1="0%" x2="0%" y2="100%">
+                <stop offset="0%" stop-color="#2A2F2C"/>
+                <stop offset="100%" stop-color="#1F2421"/>
+              </linearGradient>
+              <linearGradient id="passengerJacket" x1="0%" y1="0%" x2="0%" y2="100%">
+                <stop offset="0%" stop-color="#3A86FF"/>
+                <stop offset="100%" stop-color="#2E6BE0"/>
+              </linearGradient>
+              <radialGradient id="helmetGrad" cx="50%" cy="40%" r="60%">
+                <stop offset="0%" stop-color="#4A514E"/>
+                <stop offset="100%" stop-color="#1F2421"/>
+              </radialGradient>
+              <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+                <feGaussianBlur stdDeviation="4" result="b"/>
+                <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+              </filter>
+            </defs>
+            <ellipse cx="300" cy="440" rx="220" ry="10" fill="rgba(31,36,33,0.1)" filter="blur(8px)"/>
+            <g opacity="0.5" stroke="#1F2421" stroke-width="2" stroke-linecap="round">
+              <line x1="40" y1="250" x2="100" y2="250" opacity="0.2"/>
+              <line x1="20" y1="280" x2="90" y2="280" opacity="0.15"/>
+              <line x1="50" y1="310" x2="110" y2="310" opacity="0.2"/>
+              <line x1="30" y1="220" x2="80" y2="220" opacity="0.15"/>
+            </g>
+            <g>
+              <circle cx="170" cy="380" r="55" fill="#1F2421" stroke="#4A514E" stroke-width="2"/>
+              <circle cx="170" cy="380" r="45" fill="none" stroke="#FF6B35" stroke-width="1" opacity="0.3"/>
+              <g class="wheel-spin" style="transform-origin: 170px 380px;">
+                <circle cx="170" cy="380" r="20" fill="#2A2F2C" stroke="#FF6B35" stroke-width="1.5"/>
+                <line x1="170" y1="335" x2="170" y2="425" stroke="#FF6B35" stroke-width="1.5" opacity="0.6"/>
+                <line x1="125" y1="380" x2="215" y2="380" stroke="#FF6B35" stroke-width="1.5" opacity="0.6"/>
+                <line x1="138" y1="348" x2="202" y2="412" stroke="#FF6B35" stroke-width="1.5" opacity="0.6"/>
+                <line x1="138" y1="412" x2="202" y2="348" stroke="#FF6B35" stroke-width="1.5" opacity="0.6"/>
+                <circle cx="170" cy="380" r="6" fill="#FF6B35"/>
+              </g>
+            </g>
+            <g>
+              <circle cx="430" cy="380" r="55" fill="#1F2421" stroke="#4A514E" stroke-width="2"/>
+              <circle cx="430" cy="380" r="45" fill="none" stroke="#FF6B35" stroke-width="1" opacity="0.3"/>
+              <g class="wheel-spin" style="transform-origin: 430px 380px;">
+                <circle cx="430" cy="380" r="20" fill="#2A2F2C" stroke="#FF6B35" stroke-width="1.5"/>
+                <line x1="430" y1="335" x2="430" y2="425" stroke="#FF6B35" stroke-width="1.5" opacity="0.6"/>
+                <line x1="385" y1="380" x2="475" y2="380" stroke="#FF6B35" stroke-width="1.5" opacity="0.6"/>
+                <line x1="398" y1="348" x2="462" y2="412" stroke="#FF6B35" stroke-width="1.5" opacity="0.6"/>
+                <line x1="398" y1="412" x2="462" y2="348" stroke="#FF6B35" stroke-width="1.5" opacity="0.6"/>
+                <circle cx="430" cy="380" r="6" fill="#FF6B35"/>
+              </g>
+            </g>
+            <path d="M170 380 Q180 320 240 290 L280 280 Q300 270 320 280 L380 290 Q420 295 430 380" fill="url(#bikeBody)" stroke="#E04565" stroke-width="1.5" opacity="0.95"/>
+            <path d="M200 360 Q260 320 380 320" fill="none" stroke="#1F2421" stroke-width="2" opacity="0.4"/>
+            <path d="M250 285 Q280 275 320 280 L325 295 Q280 290 255 295 Z" fill="#1F2421"/>
+            <path d="M400 300 L420 250" stroke="#2A2F2C" stroke-width="6" stroke-linecap="round"/>
+            <path d="M395 245 Q420 240 445 250" stroke="#1F2421" stroke-width="5" stroke-linecap="round" fill="none"/>
+            <line x1="445" y1="248" x2="460" y2="235" stroke="#1F2421" stroke-width="2"/>
+            <circle cx="462" cy="233" r="4" fill="#FFB627"/>
+            <ellipse cx="425" cy="305" rx="12" ry="8" fill="#FFB627" filter="url(#glow)"/>
+            <ellipse cx="425" cy="305" rx="20" ry="12" fill="#FFB627" opacity="0.2"/>
+            <g>
+              <path d="M250 290 Q230 320 220 350 L235 355 Q245 325 265 305 Z" fill="url(#captainJacket)"/>
+              <path d="M260 230 Q250 270 270 295 L325 295 Q335 270 325 230 Q310 215 290 215 Q270 215 260 230 Z" fill="url(#captainJacket)"/>
+              <line x1="290" y1="220" x2="290" y2="290" stroke="#FF6B35" stroke-width="1" opacity="0.5"/>
+              <path d="M320 245 Q360 250 400 255 L405 265 Q360 265 325 260 Z" fill="url(#captainJacket)"/>
+              <circle cx="405" cy="258" r="6" fill="#E8C9A0"/>
+              <rect x="282" y="200" width="14" height="20" fill="#E8C9A0"/>
+              <ellipse cx="289" cy="180" rx="32" ry="34" fill="url(#helmetGrad)" stroke="#4A514E" stroke-width="1.5"/>
+              <path d="M270 175 Q289 168 308 175 L308 192 Q289 198 270 192 Z" fill="#FF6B35" opacity="0.85"/>
+              <path d="M273 178 Q289 172 305 178 L305 188 Q289 192 273 188 Z" fill="#1F2421" opacity="0.6"/>
+              <path d="M257 180 Q289 165 321 180" stroke="#FF6B35" stroke-width="2" fill="none"/>
+            </g>
+            <g>
+              <path d="M200 290 Q190 320 195 350 L210 355 Q215 325 220 305 Z" fill="url(#passengerJacket)"/>
+              <path d="M195 245 Q185 275 200 295 L245 295 Q255 275 245 245 Q235 230 220 230 Q205 230 195 245 Z" fill="url(#passengerJacket)"/>
+              <path d="M240 260 Q260 265 275 270 L280 280 Q260 278 245 273 Z" fill="url(#passengerJacket)"/>
+              <circle cx="278" cy="278" r="5" fill="#E8C9A0"/>
+              <rect x="212" y="218" width="12" height="18" fill="#E8C9A0"/>
+              <ellipse cx="218" cy="200" rx="28" ry="30" fill="url(#helmetGrad)" stroke="#4A514E" stroke-width="1.5"/>
+              <path d="M202 196 Q218 190 234 196 L234 212 Q218 217 202 212 Z" fill="#3A86FF" opacity="0.85"/>
+              <path d="M205 198 Q218 193 231 198 L231 208 Q218 211 205 208 Z" fill="#1F2421" opacity="0.6"/>
+              <path d="M190 200 Q218 187 246 200" stroke="#3A86FF" stroke-width="2" fill="none"/>
+            </g>
+            <g fill="#FFB627">
+              <circle cx="500" cy="180" r="2" opacity="0.8"/>
+              <circle cx="520" cy="220" r="1.5" opacity="0.6"/>
+              <circle cx="80" cy="160" r="2" opacity="0.7"/>
+              <circle cx="60" cy="200" r="1.5" opacity="0.5"/>
+            </g>
+          </svg>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ QUICK BOOKING CARD ============ -->
+  <div class="relative max-w-6xl mx-auto px-6 lg:px-10 mt-8 lg:-mt-4">
+    <div class="booking-card rounded-3xl p-6 lg:p-8 reveal">
+      <div class="flex flex-col lg:flex-row gap-6 lg:items-end">
+        <div class="flex-1">
+          <h3 class="font-display text-2xl font-bold mb-5 text-[var(--fg)]">Where are you going?</h3>
+          <div class="grid md:grid-cols-2 gap-3">
+            <div class="relative">
+              <div class="absolute left-4 top-1/2 -translate-y-1/2 w-2.5 h-2.5 rounded-full bg-[var(--accent)]"></div>
+              <input type="text" placeholder="Pickup location" class="booking-input w-full border rounded-xl pl-10 pr-4 py-3.5 text-sm placeholder:text-[var(--muted)] outline-none transition text-[var(--fg)]" value="Current location">
+            </div>
+            <div class="relative">
+              <div class="absolute left-4 top-1/2 -translate-y-1/2 w-2.5 h-2.5 rounded-sm bg-[var(--accent-2)]"></div>
+              <input type="text" placeholder="Destination" class="booking-input w-full border rounded-xl pl-10 pr-4 py-3.5 text-sm placeholder:text-[var(--muted)] outline-none transition text-[var(--fg)]" value="Brush St">
+            </div>
+          </div>
+        </div>
+        <button id="findRideBtn" class="btn-primary px-8 py-3.5 rounded-xl text-sm font-semibold whitespace-nowrap flex items-center justify-center gap-2">
+          Find a Ride
+          <i class="fa-solid fa-arrow-right text-xs"></i>
+        </button>
+      </div>
+
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mt-6">
+        <div class="ride-option active rounded-2xl p-4" data-ride="bike">
+          <div class="flex items-start justify-between mb-3">
+            <div class="ride-icon w-10 h-10 rounded-lg flex items-center justify-center" style="background: rgba(255,107,53,0.1);">
+              <i class="fa-solid fa-motorcycle text-lg text-[var(--muted)]"></i>
+            </div>
+            <span class="text-[10px] uppercase tracking-wider text-[var(--muted)]">2 min</span>
+          </div>
+          <div class="font-display font-semibold text-sm mb-0.5 text-[var(--fg)]">Bike</div>
+          <div class="text-xs text-[var(--muted)] mb-2">Solo, fast</div>
+          <div class="font-bold text-[var(--accent)]">$2.49</div>
+        </div>
+
+        <div class="ride-option rounded-2xl p-4" data-ride="auto">
+          <div class="flex items-start justify-between mb-3">
+            <div class="ride-icon w-10 h-10 rounded-lg flex items-center justify-center" style="background: rgba(255,182,39,0.1);">
+              <i class="fa-solid fa-truck-pickup text-lg text-[var(--muted)]"></i>
+            </div>
+            <span class="text-[10px] uppercase tracking-wider text-[var(--muted)]">4 min</span>
+          </div>
+          <div class="font-display font-semibold text-sm mb-0.5 text-[var(--fg)]">Auto</div>
+          <div class="text-xs text-[var(--muted)] mb-2">Everyday rides</div>
+          <div class="font-bold text-[var(--accent)]">$3.99</div>
+        </div>
+
+        <div class="ride-option rounded-2xl p-4" data-ride="cab">
+          <div class="flex items-start justify-between mb-3">
+            <div class="ride-icon w-10 h-10 rounded-lg flex items-center justify-center" style="background: rgba(58,134,255,0.1);">
+              <i class="fa-solid fa-car text-lg text-[var(--muted)]"></i>
+            </div>
+            <span class="text-[10px] uppercase tracking-wider text-[var(--muted)]">5 min</span>
+          </div>
+          <div class="font-display font-semibold text-sm mb-0.5 text-[var(--fg)]">Cab</div>
+          <div class="text-xs text-[var(--muted)] mb-2">Comfort for groups</div>
+          <div class="font-bold text-[var(--accent)]">$7.49</div>
+        </div>
+
+        <div class="ride-option rounded-2xl p-4" data-ride="premium">
+          <div class="flex items-start justify-between mb-3">
+            <div class="ride-icon w-10 h-10 rounded-lg flex items-center justify-center" style="background: rgba(255,182,39,0.1);">
+              <i class="fa-solid fa-car-side text-lg text-[var(--muted)]"></i>
+            </div>
+            <span class="text-[10px] uppercase tracking-wider text-[var(--muted)]">7 min</span>
+          </div>
+          <div class="font-display font-semibold text-sm mb-0.5 text-[var(--fg)]">Premium</div>
+          <div class="text-xs text-[var(--muted)] mb-2">Luxury vehicles</div>
+          <div class="font-bold text-[var(--accent)]">$14.99</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ SERVICES ============ -->
+<section id="services" class="relative py-24 lg:py-32">
+  <div class="absolute top-1/2 left-0 w-[400px] h-[400px] glow-blue opacity-50"></div>
+  <div class="relative max-w-7xl mx-auto px-6 lg:px-10">
+    <div class="text-center mb-16 reveal">
+      <span class="text-xs font-semibold tracking-[0.2em] uppercase text-[var(--accent)]">Our Services</span>
+      <h2 class="font-display font-bold text-4xl md:text-5xl lg:text-6xl mt-3 mb-4 text-[var(--fg)]">One Platform. Every Ride.</h2>
+      <p class="text-[var(--muted)] max-w-xl mx-auto">From quick bikes to premium cabs and parcel delivery — pick exactly what you need, whenever you need it.</p>
+    </div>
+
+    <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
+      <div class="service-card rounded-3xl p-7 reveal reveal-delay-1">
+        <div class="service-icon-wrap mb-5 w-14 h-14 rounded-2xl flex items-center justify-center" style="background: linear-gradient(135deg, rgba(255,107,53,0.15), rgba(255,107,53,0.05)); border: 1px solid var(--border-strong);">
+          <i class="fa-solid fa-motorcycle text-2xl text-[var(--accent)]"></i>
+        </div>
+        <h3 class="font-display text-2xl font-bold mb-2 text-[var(--fg)]">Bike</h3>
+        <p class="text-[var(--muted)] text-sm mb-5">Fast and affordable for solo travel. Beat the traffic, reach quicker.</p>
+        <div class="flex items-center justify-between pt-5 border-t border-[var(--border)]">
+          <div>
+            <div class="text-xs text-[var(--muted)]">Starting</div>
+            <div class="font-bold text-[var(--accent)]">$2.49</div>
+          </div>
+          <button class="text-xs font-semibold flex items-center gap-1 hover:gap-2 transition-all text-[var(--fg)]">
+            Book now <i class="fa-solid fa-arrow-right text-[10px]"></i>
+          </button>
+        </div>
+      </div>
+
+      <div class="service-card rounded-3xl p-7 reveal reveal-delay-2">
+        <div class="service-icon-wrap mb-5 w-14 h-14 rounded-2xl flex items-center justify-center" style="background: linear-gradient(135deg, rgba(255,182,39,0.15), rgba(255,182,39,0.05)); border: 1px solid rgba(255,182,39,0.3);">
+          <i class="fa-solid fa-truck-pickup text-2xl text-[var(--accent-3)]"></i>
+        </div>
+        <h3 class="font-display text-2xl font-bold mb-2 text-[var(--fg)]">Auto</h3>
+        <p class="text-[var(--muted)] text-sm mb-5">Convenient rides for everyday journeys. Affordable, open-air, city-ready.</p>
+        <div class="flex items-center justify-between pt-5 border-t border-[var(--border)]">
+          <div>
+            <div class="text-xs text-[var(--muted)]">Starting</div>
+            <div class="font-bold text-[var(--accent)]">$3.99</div>
+          </div>
+          <button class="text-xs font-semibold flex items-center gap-1 hover:gap-2 transition-all text-[var(--fg)]">
+            Book now <i class="fa-solid fa-arrow-right text-[10px]"></i>
+          </button>
+        </div>
+      </div>
+
+      <div class="service-card rounded-3xl p-7 reveal reveal-delay-3">
+        <div class="service-icon-wrap mb-5 w-14 h-14 rounded-2xl flex items-center justify-center" style="background: linear-gradient(135deg, rgba(58,134,255,0.15), rgba(58,134,255,0.05)); border: 1px solid rgba(58,134,255,0.3);">
+          <i class="fa-solid fa-car text-2xl text-[var(--accent-2)]"></i>
+        </div>
+        <h3 class="font-display text-2xl font-bold mb-2 text-[var(--fg)]">Cab</h3>
+        <p class="text-[var(--muted)] text-sm mb-5">Comfortable transportation for individuals and groups. AC, spacious, relaxed.</p>
+        <div class="flex items-center justify-between pt-5 border-t border-[var(--border)]">
+          <div>
+            <div class="text-xs text-[var(--muted)]">Starting</div>
+            <div class="font-bold text-[var(--accent)]">$7.49</div>
+          </div>
+          <button class="text-xs font-semibold flex items-center gap-1 hover:gap-2 transition-all text-[var(--fg)]">
+            Book now <i class="fa-solid fa-arrow-right text-[10px]"></i>
+          </button>
+        </div>
+      </div>
+
+      <div class="service-card rounded-3xl p-7 reveal reveal-delay-1">
+        <div class="service-icon-wrap mb-5 w-14 h-14 rounded-2xl flex items-center justify-center" style="background: linear-gradient(135deg, rgba(255,182,39,0.15), rgba(255,182,39,0.05)); border: 1px solid rgba(255,182,39,0.3);">
+          <i class="fa-solid fa-car-side text-2xl text-[var(--accent-3)]"></i>
+        </div>
+        <h3 class="font-display text-2xl font-bold mb-2 text-[var(--fg)]">Premium</h3>
+        <p class="text-[var(--muted)] text-sm mb-5">Luxury rides with premium vehicles. Top-rated captains, plush interiors.</p>
+        <div class="flex items-center justify-between pt-5 border-t border-[var(--border)]">
+          <div>
+            <div class="text-xs text-[var(--muted)]">Starting</div>
+            <div class="font-bold text-[var(--accent)]">$14.99</div>
+          </div>
+          <button class="text-xs font-semibold flex items-center gap-1 hover:gap-2 transition-all text-[var(--fg)]">
+            Book now <i class="fa-solid fa-arrow-right text-[10px]"></i>
+          </button>
+        </div>
+      </div>
+
+      <div class="service-card rounded-3xl p-7 reveal reveal-delay-2">
+        <div class="service-icon-wrap mb-5 w-14 h-14 rounded-2xl flex items-center justify-center" style="background: linear-gradient(135deg, rgba(255,107,53,0.15), rgba(255,107,53,0.05)); border: 1px solid var(--border-strong);">
+          <i class="fa-solid fa-box text-2xl text-[var(--accent)]"></i>
+        </div>
+        <h3 class="font-display text-2xl font-bold mb-2 text-[var(--fg)]">Parcel</h3>
+        <p class="text-[var(--muted)] text-sm mb-5">Fast and reliable local delivery. Send packages across the city in minutes.</p>
+        <div class="flex items-center justify-between pt-5 border-t border-[var(--border)]">
+          <div>
+            <div class="text-xs text-[var(--muted)]">Starting</div>
+            <div class="font-bold text-[var(--accent)]">$3.49</div>
+          </div>
+          <button class="text-xs font-semibold flex items-center gap-1 hover:gap-2 transition-all text-[var(--fg)]">
+            Send now <i class="fa-solid fa-arrow-right text-[10px]"></i>
+          </button>
+        </div>
+      </div>
+
+      <div class="rounded-3xl p-7 reveal reveal-delay-3 flex flex-col justify-between" style="background: linear-gradient(135deg, var(--accent), #E04565); color: #fff; box-shadow: 0 20px 40px -15px rgba(255,107,53,0.4);">
+        <div>
+          <div class="w-14 h-14 rounded-2xl flex items-center justify-center mb-5" style="background: rgba(255,255,255,0.15);">
+            <i class="fa-solid fa-bolt text-2xl"></i>
+          </div>
+          <h3 class="font-display text-2xl font-bold mb-2">Not sure which ride?</h3>
+          <p class="text-sm opacity-80">Compare all options side by side and pick the perfect ride for your trip.</p>
+        </div>
+        <button class="mt-5 bg-white text-[var(--accent)] py-3 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 hover:gap-3 transition-all">
+          Compare rides <i class="fa-solid fa-arrow-right text-xs"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ HOW IT WORKS ============ -->
+<section id="how" class="relative py-24 lg:py-32" style="background: var(--bg-soft);">
+  <div class="max-w-7xl mx-auto px-6 lg:px-10">
+    <div class="text-center mb-16 reveal">
+      <span class="text-xs font-semibold tracking-[0.2em] uppercase text-[var(--accent)]">How It Works</span>
+      <h2 class="font-display font-bold text-4xl md:text-5xl lg:text-6xl mt-3 mb-4 text-[var(--fg)]">Three taps. That's it.</h2>
+      <p class="text-[var(--muted)] max-w-xl mx-auto">Book your ride in under 30 seconds. No phone calls, no waiting on hold.</p>
+    </div>
+
+    <div class="relative grid md:grid-cols-3 gap-8 md:gap-4">
+      <div class="hidden md:block absolute top-16 left-[16%] right-[16%] step-line"></div>
+
+      <div class="relative reveal reveal-delay-1 text-center md:text-left">
+        <div class="relative inline-flex md:flex md:justify-start mb-6">
+          <div class="w-32 h-32 rounded-3xl flex items-center justify-center relative bg-white" style="border: 1px solid var(--border); box-shadow: 0 10px 30px -15px rgba(0,0,0,0.1);">
+            <i class="fa-solid fa-location-dot text-3xl text-[var(--accent)]"></i>
+            <div class="absolute -top-2 -right-2 w-10 h-10 rounded-full flex items-center justify-center font-display font-bold text-sm" style="background: var(--accent); color: #fff;">01</div>
+          </div>
+        </div>
+        <h3 class="font-display text-xl font-bold mb-2 text-[var(--fg)]">Enter Your Destination</h3>
+        <p class="text-sm text-[var(--muted)] max-w-xs mx-auto md:mx-0">Choose your pickup and destination. We'll show available rides instantly.</p>
+      </div>
+
+      <div class="relative reveal reveal-delay-2 text-center md:text-left">
+        <div class="relative inline-flex md:flex md:justify-start mb-6">
+          <div class="w-32 h-32 rounded-3xl flex items-center justify-center relative bg-white" style="border: 1px solid var(--border); box-shadow: 0 10px 30px -15px rgba(0,0,0,0.1);">
+            <i class="fa-solid fa-list-check text-3xl text-[var(--accent-2)]"></i>
+            <div class="absolute -top-2 -right-2 w-10 h-10 rounded-full flex items-center justify-center font-display font-bold text-sm" style="background: var(--accent-2); color: #fff;">02</div>
+          </div>
+        </div>
+        <h3 class="font-display text-xl font-bold mb-2 text-[var(--fg)]">Choose Your Ride</h3>
+        <p class="text-sm text-[var(--muted)] max-w-xs mx-auto md:mx-0">Select Bike, Auto, Cab or Premium based on your budget and comfort.</p>
+      </div>
+
+      <div class="relative reveal reveal-delay-3 text-center md:text-left">
+        <div class="relative inline-flex md:flex md:justify-start mb-6">
+          <div class="w-32 h-32 rounded-3xl flex items-center justify-center relative bg-white" style="border: 1px solid var(--border); box-shadow: 0 10px 30px -15px rgba(0,0,0,0.1);">
+            <i class="fa-solid fa-route text-3xl text-[var(--accent-3)]"></i>
+            <div class="absolute -top-2 -right-2 w-10 h-10 rounded-full flex items-center justify-center font-display font-bold text-sm" style="background: var(--accent-3); color: #1F2421;">03</div>
+          </div>
+        </div>
+        <h3 class="font-display text-xl font-bold mb-2 text-[var(--fg)]">Ride & Enjoy</h3>
+        <p class="text-sm text-[var(--muted)] max-w-xs mx-auto md:mx-0">Track your driver in real time and reach your destination safely.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ LIVE RIDE EXPERIENCE (Holographic HUD) ============ -->
+<section class="relative py-24 lg:py-32 overflow-hidden" style="background: #cbbda5; color: #fff;">
+  <div class="absolute inset-0 bg-grid opacity-10"></div>
+  <div class="absolute -top-20 right-0 w-[500px] h-[500px] glow-coral opacity-30"></div>
+  
+  <div class="relative max-w-7xl mx-auto px-6 lg:px-10">
+    <div class="text-center mb-16 reveal">
+      <span class="text-xl font-semibold tracking-[0.2em] uppercase text-[var(--lime-green)]">LIVE RIDE EXPERIENCE</span>
+      <h2 class="font-display font-bold text-4xl md:text-5xl lg:text-6xl mt-3 mb-4 text-white">RIDE Tracking.</h2>
+      <p class="text-gray-500 max-w-xl mx-auto"></p>
+    </div>
+
+    <div class="grid lg:grid-cols-5 gap-10 items-center">
+      
+      <div class="lg:col-span-2 reveal reveal-delay-1 space-y-6">
+        <div class="p-6 rounded-3xl border border-[var(--hud-green)]/30" style="background: rgba(227, 31, 126, 0.02); box-shadow: 0 0 30px rgba(0, 255, 157, 0.05);">
+          <div class="flex items-center gap-2 text-[var(--hud-green)] mb-4 font-mono text-sm">
+            <span class="w-2 h-2 rounded-full bg-[var(--lime-green)] animate-pulse"></span>
+            ASSET: CAR-742
+          </div>
+          <h3 class="font-display text-3xl font-bold mb-2 text-white">Live Status: En Route</h3>
+          <p class="text-gray-500 mb-6"></p>
+          
+          <div class="grid grid-cols-3 gap-4 mb-6">
+            <div class="p-4 rounded-xl border border-[var(--hud-green)]/20 bg-black/30">
+              <i class="fa-solid fa-gauge-high text-[var(--hud-orange)] mb-2"></i>
+              <div class="text-[10px] text-gray-500 font-mono">SPEED</div>
+              <div class="font-display font-bold text-xl text-white" id="hud-speed">42 MPH</div>
+            </div>
+            <div class="p-4 rounded-xl border border-[var(--hud-green)]/20 bg-black/30">
+              <i class="fa-solid fa-hourglass-half text-[var(--hud-green)] mb-2"></i>
+              <div class="text-[10px] text-gray-500 font-mono">ETA</div>
+              <div class="font-display font-bold text-xl text-white">14 MIN</div>
+            </div>
+            <div class="p-4 rounded-xl border border-[var(--hud-green)]/20 bg-black/30">
+              <i class="fa-solid fa-route text-[var(--hud-cyan)] mb-2"></i>
+              <div class="text-[10px] text-gray-500 font-mono">DISTANCE</div>
+              <div class="font-display font-bold text-xl text-white">6 KM</div>
+            </div>
+          </div>
+
+          <div class="flex items-center gap-2 text-sm text-gray-400 font-mono">
+            <i class="fa-solid fa-shield-halved text-[var(--hud-green)]"></i>
+            SECURE AND SAFE RIDE
+          </div>
+        </div>
+      </div>
+
+      <!-- Right: Holographic Map UI -->
+      <div class="lg:col-span-3 reveal reveal-delay-2">
+        <div class="hud-container" style="background-color: #503a47;">
+          <!-- Provided Map Image -->
+          <img src="https://z-cdn-media.chatglm.cn/files/c02f76d3-f46c-49a4-9bca-7c7d14102b0d.jpg?auth_key=1886434024-5cc3e0e23fba4d279f7d85bc3dcd908f-0-8dc3a7b10f7e1f6f3b97787868779a0f" 
+               alt="Navigation Map" 
+               class="hud-map-image"
+               onerror="this.onerror=null;this.style.display='none';">
+          
+          <!-- Dark Overlay -->
+          <div class="hud-overlay"></div>
+
+          <!-- Holographic Grid -->
+          <div class="hud-grid"></div>
+
+          <!-- Scanline Effect -->
+          <div class="hud-scanline"></div>
+
+          <!-- SVG Graphics Overlay -->
+          <svg class="absolute inset-0 w-full h-full" viewBox="0 0 800 500" preserveAspectRatio="xMidYMid slice">
+            <defs>
+              <filter id="hudGlow" x="-20%" y="-20%" width="140%" height="140%">
+                <feGaussianBlur stdDeviation="4" result="b" />
+                <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+              </filter>
+            </defs>
+
+            <!-- Remaining Route (Orange dashed) -->
+            <path id="hudRoutePath" d="M 150,450 C 150,350 250,350 250,300 C 250,250 400,250 400,200 C 400,150 550,150 550,100 C 550,60 650,60 650,50" 
+                  fill="none" stroke="#ff6b35" stroke-width="5" stroke-linecap="round" stroke-dasharray="12 8" filter="url(#hudGlow)" />
+            
+            <!-- Traveled Route (Cyan) -->
+            <path id="hudTraveledPath" d="M 150,450 C 150,350 250,350 250,300 C 250,250 400,250 400,200 C 400,150 550,150 550,100 C 550,60 650,60 650,50" 
+                  fill="none" stroke="#00f3ff" stroke-width="4" stroke-linecap="round" filter="url(#hudGlow)" />
+            
+            <!-- Destination Marker (Top Right) -->
+            <g transform="translate(650, 50)">
+              <circle r="12" fill="none" stroke="#ff6b35" stroke-width="1.5" class="target-ring" />
+              <circle r="12" fill="none" stroke="#ff6b35" stroke-width="1.5" class="target-ring-2" />
+              <circle r="6" fill="none" stroke="#ff6b35" stroke-width="2" />
+              <line x1="-15" y1="0" x2="-5" y2="0" stroke="#ff6b35" stroke-width="2" filter="url(#hudGlow)"/>
+              <line x1="5" y1="0" x2="15" y2="0" stroke="#ff6b35" stroke-width="2" filter="url(#hudGlow)"/>
+              <line x1="0" y1="-15" x2="0" y2="-5" stroke="#ff6b35" stroke-width="2" filter="url(#hudGlow)"/>
+              <line x1="0" y1="5" x2="0" y2="15" stroke="#ff6b35" stroke-width="2" filter="url(#hudGlow)"/>
+            </g>
+
+            <!-- Live Tracking Cursor -->
+            <g id="hudCursor" class="hud-cursor">
+              <!-- Outer Pulsing Rings -->
+              <circle r="20" fill="none" stroke="#00ff9d" stroke-width="1.5" opacity="0.6" class="target-ring" />
+              <circle r="20" fill="none" stroke="#00ff9d" stroke-width="1.5" opacity="0.4" class="target-ring-2" />
+              <!-- Reticle -->
+              <circle r="10" fill="none" stroke="#00ff9d" stroke-width="2" filter="url(#hudGlow)" />
+              <circle r="2" fill="#00ff9d" filter="url(#hudGlow)" />
+              <line x1="-15" y1="0" x2="-5" y2="0" stroke="#00ff9d" stroke-width="2" filter="url(#hudGlow)"/>
+              <line x1="5" y1="0" x2="15" y2="0" stroke="#00ff9d" stroke-width="2" filter="url(#hudGlow)"/>
+              <line x1="0" y1="-15" x2="0" y2="-5" stroke="#00ff9d" stroke-width="2" filter="url(#hudGlow)"/>
+              <line x1="0" y1="5" x2="0" y2="15" stroke="#00ff9d" stroke-width="2" filter="url(#hudGlow)"/>
+            </g>
+          </svg>
+
+          
+          
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ WHY CHOOSE US ============ -->
+<section class="relative py-24 lg:py-32" style="background: var(--bg-soft);">
+  <div class="max-w-7xl mx-auto px-6 lg:px-10">
+    <div class="text-center mb-16 reveal">
+      <span class="text-xs font-semibold tracking-[0.2em] uppercase text-[var(--accent)]">Why Choose Us</span>
+      <h2 class="font-display font-bold text-4xl md:text-5xl lg:text-6xl mt-3 mb-4 text-[var(--fg)]">Built for riders like you.</h2>
+      <p class="text-[var(--muted)] max-w-xl mx-auto">Every feature is crafted to make your ride smoother, safer, and smarter.</p>
+    </div>
+
+    <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
+      <div class="feature-card rounded-3xl p-7 reveal reveal-delay-1">
+        <div class="w-12 h-12 rounded-2xl flex items-center justify-center mb-5" style="background: rgba(255,107,53,0.1);">
+          <i class="fa-solid fa-bolt text-xl text-[var(--accent)]"></i>
+        </div>
+        <h3 class="font-display text-xl font-bold mb-2 text-[var(--fg)]">Fast</h3>
+        <p class="text-sm text-[var(--muted)]">Get a ride within minutes. Our network ensures captains are always nearby.</p>
+      </div>
+      <div class="feature-card rounded-3xl p-7 reveal reveal-delay-2">
+        <div class="w-12 h-12 rounded-2xl flex items-center justify-center mb-5" style="background: rgba(255,182,39,0.1);">
+          <i class="fa-solid fa-sack-dollar text-xl text-[var(--accent-3)]"></i>
+        </div>
+        <h3 class="font-display text-xl font-bold mb-2 text-[var(--fg)]">Affordable</h3>
+        <p class="text-sm text-[var(--muted)]">Transparent and competitive pricing. No surge surprises, no hidden fees.</p>
+      </div>
+      <div class="feature-card rounded-3xl p-7 reveal reveal-delay-3">
+        <div class="w-12 h-12 rounded-2xl flex items-center justify-center mb-5" style="background: rgba(46,125,50,0.1);">
+          <i class="fa-solid fa-shield-halved text-xl text-[var(--success)]"></i>
+        </div>
+        <h3 class="font-display text-xl font-bold mb-2 text-[var(--fg)]">Safe</h3>
+        <p class="text-sm text-[var(--muted)]">Verified drivers and safety features like SOS, ride sharing, and live tracking.</p>
+      </div>
+      <div class="feature-card rounded-3xl p-7 reveal reveal-delay-1">
+        <div class="w-12 h-12 rounded-2xl flex items-center justify-center mb-5" style="background: rgba(58,134,255,0.1);">
+          <i class="fa-solid fa-location-crosshairs text-xl text-[var(--accent-2)]"></i>
+        </div>
+        <h3 class="font-display text-xl font-bold mb-2 text-[var(--fg)]">Live Tracking</h3>
+        <p class="text-sm text-[var(--muted)]">Track your ride in real time. Share your trip with loved ones in one tap.</p>
+      </div>
+      <div class="feature-card rounded-3xl p-7 reveal reveal-delay-2">
+        <div class="w-12 h-12 rounded-2xl flex items-center justify-center mb-5" style="background: rgba(255,107,53,0.1);">
+          <i class="fa-solid fa-credit-card text-xl text-[var(--accent)]"></i>
+        </div>
+        <h3 class="font-display text-xl font-bold mb-2 text-[var(--fg)]">Easy Payments</h3>
+        <p class="text-sm text-[var(--muted)]">Multiple secure payment options. Cards, wallets, UPI, and cash accepted.</p>
+      </div>
+      <div class="feature-card rounded-3xl p-7 reveal reveal-delay-3">
+        <div class="w-12 h-12 rounded-2xl flex items-center justify-center mb-5" style="background: rgba(255,182,39,0.1);">
+          <i class="fa-solid fa-star text-xl text-[var(--accent-3)]"></i>
+        </div>
+        <h3 class="font-display text-xl font-bold mb-2 text-[var(--fg)]">Trusted Drivers</h3>
+        <p class="text-sm text-[var(--muted)]">Professional and verified drivers, rated by riders like you after every trip.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ SAFETY SECTION ============ -->
+<section id="safety" class="relative py-24 lg:py-32 overflow-hidden">
+  <div class="absolute inset-0 bg-grid opacity-30"></div>
+  <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] glow-coral opacity-25"></div>
+
+  <div class="relative max-w-7xl mx-auto px-6 lg:px-10">
+    <div class="grid lg:grid-cols-2 gap-16 items-center">
+      <div class="reveal flex justify-center order-2 lg:order-1">
+        <div class="relative w-[340px] h-[340px] md:w-[420px] md:h-[420px]">
+          <svg viewBox="0 0 400 400" class="absolute inset-0 slow-spin">
+            <circle cx="200" cy="200" r="190" fill="none" stroke="rgba(255,107,53,0.15)" stroke-width="1" stroke-dasharray="4 8"/>
+            <circle cx="200" cy="200" r="170" fill="none" stroke="rgba(58,134,255,0.1)" stroke-width="1"/>
+          </svg>
+          <svg viewBox="0 0 400 400" class="absolute inset-0">
+            <circle cx="200" cy="200" r="120" fill="none" stroke="rgba(255,107,53,0.3)" stroke-width="2" class="shield-ring"/>
+            <circle cx="200" cy="200" r="120" fill="none" stroke="rgba(255,107,53,0.3)" stroke-width="2" class="shield-ring" style="animation-delay:1s;"/>
+            <circle cx="200" cy="200" r="120" fill="none" stroke="rgba(255,107,53,0.3)" stroke-width="2" class="shield-ring" style="animation-delay:2s;"/>
+          </svg>
+          <svg viewBox="0 0 400 400" class="absolute inset-0 shield-pulse">
+            <defs>
+              <linearGradient id="shieldGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+                <stop offset="0%" stop-color="#FF6B35"/>
+                <stop offset="100%" stop-color="#E04565"/>
+              </linearGradient>
+            </defs>
+            <g transform="translate(200,200)">
+              <path d="M0,-110 L80,-80 L80,20 Q80,80 0,120 Q-80,80 -80,20 L-80,-80 Z" fill="url(#shieldGrad)" stroke="#FF6B35" stroke-width="2"/>
+              <path d="M0,-90 L65,-65 L65,15 Q65,65 0,100 Q-65,65 -65,15 L-65,-65 Z" fill="#fff" opacity="0.3"/>
+              <path d="M-30,-5 L-8,20 L35,-30" fill="none" stroke="#fff" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/>
+            </g>
+          </svg>
+          <svg viewBox="0 0 400 400" class="absolute inset-0 slow-spin">
+            <circle cx="200" cy="10" r="6" fill="#FF6B35"/>
+            <circle cx="390" cy="200" r="4" fill="#3A86FF"/>
+            <circle cx="200" cy="390" r="5" fill="#FFB627"/>
+            <circle cx="10" cy="200" r="4" fill="#3A86FF"/>
+          </svg>
+        </div>
+      </div>
+
+      <div class="reveal reveal-delay-2 order-1 lg:order-2">
+        <span class="text-xs font-semibold tracking-[0.2em] uppercase text-[var(--accent)]">Safety First</span>
+        <h2 class="font-display font-bold text-4xl md:text-5xl lg:text-6xl mt-3 mb-5 text-[var(--fg)]">Your Safety Comes First.</h2>
+        <p class="text-[var(--muted)] mb-8 max-w-md">Every ride is built around your security — from verified captains to 24/7 support and emergency assistance.</p>
+
+        <div class="grid sm:grid-cols-2 gap-4">
+          <div class="flex items-start gap-3 p-4 rounded-2xl bg-white" style="border: 1px solid var(--border); box-shadow: 0 5px 15px -10px rgba(0,0,0,0.1);">
+            <div class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style="background: rgba(46,125,50,0.1);">
+              <i class="fa-solid fa-user-check text-[var(--success)]"></i>
+            </div>
+            <div>
+              <div class="font-semibold text-sm text-[var(--fg)]">Verified Drivers</div>
+              <div class="text-xs text-[var(--muted)] mt-1">Every captain is background-checked and KYC verified.</div>
+            </div>
+          </div>
+          <div class="flex items-start gap-3 p-4 rounded-2xl bg-white" style="border: 1px solid var(--border); box-shadow: 0 5px 15px -10px rgba(0,0,0,0.1);">
+            <div class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style="background: rgba(255,107,53,0.1);">
+              <i class="fa-solid fa-location-crosshairs text-[var(--accent)]"></i>
+            </div>
+            <div>
+              <div class="font-semibold text-sm text-[var(--fg)]">Live Ride Tracking</div>
+              <div class="text-xs text-[var(--muted)] mt-1">Share your trip with contacts in real time.</div>
+            </div>
+          </div>
+          <div class="flex items-start gap-3 p-4 rounded-2xl bg-white" style="border: 1px solid var(--border); box-shadow: 0 5px 15px -10px rgba(0,0,0,0.1);">
+            <div class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style="background: rgba(255,107,53,0.1);">
+              <i class="fa-solid fa-bell text-[var(--accent)]"></i>
+            </div>
+            <div>
+              <div class="font-semibold text-sm text-[var(--fg)]">Emergency Assistance</div>
+              <div class="text-xs text-[var(--muted)] mt-1">One-tap SOS connects you to local authorities.</div>
+            </div>
+          </div>
+          <div class="flex items-start gap-3 p-4 rounded-2xl bg-white" style="border: 1px solid var(--border); box-shadow: 0 5px 15px -10px rgba(0,0,0,0.1);">
+            <div class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style="background: rgba(255,182,39,0.1);">
+              <i class="fa-solid fa-share-nodes text-[var(--accent-3)]"></i>
+            </div>
+            <div>
+              <div class="font-semibold text-sm text-[var(--fg)]">Ride Sharing</div>
+              <div class="text-xs text-[var(--muted)] mt-1">Share trip status with friends and family instantly.</div>
+            </div>
+          </div>
+          <div class="flex items-start gap-3 p-4 rounded-2xl bg-white" style="border: 1px solid var(--border); box-shadow: 0 5px 15px -10px rgba(0,0,0,0.1);">
+            <div class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style="background: rgba(58,134,255,0.1);">
+              <i class="fa-solid fa-star text-[var(--accent-2)]"></i>
+            </div>
+            <div>
+              <div class="font-semibold text-sm text-[var(--fg)]">Driver Ratings</div>
+              <div class="text-xs text-[var(--muted)] mt-1">Rate every ride. Low-rated drivers are removed.</div>
+            </div>
+          </div>
+          <div class="flex items-start gap-3 p-4 rounded-2xl bg-white" style="border: 1px solid var(--border); box-shadow: 0 5px 15px -10px rgba(0,0,0,0.1);">
+            <div class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style="background: rgba(46,125,50,0.1);">
+              <i class="fa-solid fa-headset text-[var(--success)]"></i>
+            </div>
+            <div>
+              <div class="font-semibold text-sm text-[var(--fg)]">24/7 Support</div>
+              <div class="text-xs text-[var(--muted)] mt-1">Real humans, anytime you need help.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ MOBILE APP ============ -->
+<section class="relative py-24 lg:py-32 overflow-hidden" style="background: var(--bg-soft);">
+  <div class="absolute -bottom-20 -left-20 w-[400px] h-[400px] glow-blue opacity-40"></div>
+  <div class="relative max-w-7xl mx-auto px-6 lg:px-10">
+    <div class="grid lg:grid-cols-2 gap-16 items-center">
+      <div class="reveal">
+        <span class="text-xs font-semibold tracking-[0.2em] uppercase text-[var(--accent)]">Mobile App</span>
+        <h2 class="font-display font-bold text-4xl md:text-5xl lg:text-6xl mt-3 mb-4 text-[var(--fg)]">Your rides, right in your pocket.</h2>
+        <p class="text-[var(--muted)] mb-8 max-w-md">Book, track, and pay for rides with a few taps. The RideFlow app puts the entire city within reach.</p>
+
+        <div class="flex flex-col sm:flex-row gap-3 mb-8">
+          <button class="btn-primary px-6 py-3.5 rounded-xl text-sm font-semibold flex items-center justify-center gap-3">
+            <i class="fa-brands fa-apple text-lg"></i>
+            <div class="text-left">
+              <div class="text-[10px] opacity-70">Download on the</div>
+              <div class="text-sm font-bold leading-none mt-0.5">App Store</div>
+            </div>
+          </button>
+          <button class="btn-ghost px-6 py-3.5 rounded-xl text-sm font-semibold flex items-center justify-center gap-3">
+            <i class="fa-brands fa-google-play text-lg"></i>
+            <div class="text-left">
+              <div class="text-[10px] opacity-70">Get it on</div>
+              <div class="text-sm font-bold leading-none mt-0.5">Google Play</div>
+            </div>
+          </button>
+        </div>
+
+        <div class="flex items-center gap-6 pt-6 border-t border-[var(--border)]">
+          <div>
+            <div class="flex items-center gap-1 text-[var(--accent)]">
+              <i class="fa-solid fa-star text-xs"></i><i class="fa-solid fa-star text-xs"></i><i class="fa-solid fa-star text-xs"></i><i class="fa-solid fa-star text-xs"></i><i class="fa-solid fa-star text-xs"></i>
+            </div>
+            <div class="text-xs text-[var(--muted)] mt-1">4.9 / 5 · 280K reviews</div>
+          </div>
+          <div class="h-10 w-px bg-[var(--border)]"></div>
+          <div>
+            <div class="font-display font-bold text-lg text-[var(--fg)]">5M+</div>
+            <div class="text-xs text-[var(--muted)] mt-1">Downloads</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="reveal reveal-delay-2 relative h-[500px] md:h-[600px]">
+        <div class="phone-float absolute left-0 top-8 w-48 md:w-56 z-10" style="animation-delay: 0s;">
+          <div class="phone-frame">
+            <div class="phone-screen" style="aspect-ratio: 9/19;">
+              <div class="phone-notch"></div>
+              <div class="p-3 pt-8 h-full flex flex-col bg-white">
+                <div class="flex items-center justify-between mb-4">
+                  <div>
+                    <div class="text-[8px] text-[var(--muted)]">Welcome back</div>
+                    <div class="text-xs font-bold text-[var(--fg)]">Book a ride</div>
+                  </div>
+                  <div class="w-6 h-6 rounded-full" style="background: linear-gradient(135deg, var(--accent), var(--accent-3));"></div>
+                </div>
+                <div class="space-y-2 mb-3">
+                  <div class="p-2 rounded-lg bg-[var(--bg-soft)] border border-[var(--border)]">
+                    <div class="text-[7px] text-[var(--muted)]">PICKUP</div>
+                    <div class="text-[9px] font-semibold text-[var(--fg)]">Current location</div>
+                  </div>
+                  <div class="p-2 rounded-lg bg-[var(--bg-soft)] border border-[var(--border)]">
+                    <div class="text-[7px] text-[var(--muted)]">DROP</div>
+                    <div class="text-[9px] font-semibold text-[var(--fg)]">Brush St</div>
+                  </div>
+                </div>
+                <div class="text-[8px] font-bold mb-2 text-[var(--fg)]">Choose ride</div>
+                <div class="space-y-1.5 flex-1">
+                  <div class="p-2 rounded-lg flex items-center gap-2 bg-white" style="border: 1px solid var(--accent);">
+                    <i class="fa-solid fa-motorcycle text-[10px] text-[var(--accent)]"></i>
+                    <div class="flex-1">
+                      <div class="text-[8px] font-bold text-[var(--fg)]">Bike</div>
+                      <div class="text-[6px] text-[var(--muted)]">2 min away</div>
+                    </div>
+                    <div class="text-[8px] font-bold text-[var(--accent)]">$2.49</div>
+                  </div>
+                  <div class="p-2 rounded-lg flex items-center gap-2 bg-[var(--bg-soft)] border border-[var(--border)]">
+                    <i class="fa-solid fa-car text-[10px] text-[var(--muted)]"></i>
+                    <div class="flex-1">
+                      <div class="text-[8px] font-bold text-[var(--fg)]">Cab</div>
+                      <div class="text-[6px] text-[var(--muted)]">5 min away</div>
+                    </div>
+                    <div class="text-[8px] font-bold text-[var(--fg)]">$7.49</div>
+                  </div>
+                  <div class="p-2 rounded-lg flex items-center gap-2 bg-[var(--bg-soft)] border border-[var(--border)]">
+                    <i class="fa-solid fa-car-side text-[10px] text-[var(--muted)]"></i>
+                    <div class="flex-1">
+                      <div class="text-[8px] font-bold text-[var(--fg)]">Premium</div>
+                      <div class="text-[6px] text-[var(--muted)]">7 min away</div>
+                    </div>
+                    <div class="text-[8px] font-bold text-[var(--fg)]">$14.99</div>
+                  </div>
+                </div>
+                <button class="mt-3 py-2 rounded-lg text-[9px] font-bold text-white" style="background: var(--accent);">Book Bike</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="phone-float absolute left-1/2 -translate-x-1/2 top-0 w-52 md:w-64 z-20" style="animation-delay: 1.5s;">
+          <div class="phone-frame">
+            <div class="phone-screen" style="aspect-ratio: 9/19;">
+              <div class="phone-notch"></div>
+              <div class="absolute inset-0 pt-8">
+                <svg viewBox="0 0 200 400" class="w-full h-full" preserveAspectRatio="xMidYMid slice">
+                  <rect width="200" height="400" fill="#f1f1d5"/>
+                  <g opacity="0.3" fill="rgba(58,134,255,0.1)" stroke="rgba(58,134,255,0.2)">
+                    <rect x="10" y="20" width="50" height="60" rx="3"/>
+                    <rect x="80" y="20" width="50" height="80" rx="3"/>
+                    <rect x="150" y="20" width="40" height="60" rx="3"/>
+                    <rect x="10" y="120" width="60" height="80" rx="3"/>
+                    <rect x="90" y="140" width="50" height="60" rx="3"/>
+                    <rect x="160" y="120" width="35" height="80" rx="3"/>
+                    <rect x="10" y="240" width="50" height="70" rx="3"/>
+                    <rect x="80" y="240" width="60" height="80" rx="3"/>
+                    <rect x="160" y="240" width="35" height="70" rx="3"/>
+                  </g>
+                  <g stroke="rgba(255,182,39,0.5)" stroke-width="6" fill="none">
+                    <path d="M0 110 L200 110"/>
+                    <path d="M0 230 L200 230"/>
+                    <path d="M70 0 L70 400"/>
+                  </g>
+                  <path d="M30 350 Q30 230 70 230 L70 110 Q70 80 100 80 L150 80" fill="none" stroke="#FF6B35" stroke-width="2.5" stroke-linecap="round" stroke-dasharray="5 4" class="hud-route-remaining"/>
+                  <circle cx="30" cy="350" r="6" fill="#3A86FF"/>
+                  <circle cx="30" cy="350" r="3" fill="#fff"/>
+                  <g transform="translate(150,80)">
+                    <path d="M0 -8 L-5 4 L0 1 L5 4 Z" fill="#FF6B35"/>
+                  </g>
+                  <g class="hud-cursor">
+                    <circle cx="70" cy="160" r="7" fill="#00ff9d"/>
+                    <circle cx="70" cy="160" r="4" fill="#fff"/>
+                  </g>
+                </svg>
+              </div>
+              <div class="absolute bottom-0 left-0 right-0 p-3 pb-5 rounded-t-2xl bg-white" style="border-top: 1px solid var(--border);">
+                <div class="w-8 h-1 rounded-full bg-[var(--border-strong)] mx-auto mb-3 opacity-50"></div>
+                <div class="flex items-center gap-2 mb-3">
+                  <div class="w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold text-white" style="background: linear-gradient(135deg, var(--accent), var(--accent-3));">A</div>
+                  <div class="flex-1">
+                    <div class="text-[10px] font-bold text-[var(--fg)]">Alex Carter</div>
+                    <div class="text-[7px] text-[var(--muted)]">★ 4.9 · RF 4490</div>
+                  </div>
+                  <div class="w-6 h-6 rounded-full flex items-center justify-center bg-[var(--bg-soft)]">
+                    <i class="fa-solid fa-phone text-[7px] text-[var(--accent)]"></i>
+                  </div>
+                </div>
+                <div class="text-center py-2 rounded-lg" style="background: rgba(255,107,53,0.1);">
+                  <div class="text-[7px] text-[var(--muted)]">Arriving in</div>
+                  <div class="font-display text-base font-bold text-[var(--accent)]">3 min</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="phone-float absolute right-0 top-12 w-48 md:w-56 z-10" style="animation-delay: 0.8s;">
+          <div class="phone-frame">
+            <div class="phone-screen" style="aspect-ratio: 9/19;">
+              <div class="phone-notch"></div>
+              <div class="p-3 pt-8 h-full flex flex-col bg-white">
+                <div class="text-[8px] text-[var(--muted)] mb-1">Trip complete</div>
+                <div class="text-xs font-bold mb-4 text-[var(--fg)]">Payment</div>
+                <div class="rounded-xl p-3 mb-3" style="background: linear-gradient(135deg, rgba(255,107,53,0.1), rgba(58,134,255,0.05)); border: 1px solid var(--border-strong);">
+                  <div class="text-[7px] text-[var(--muted)]">Total fare</div>
+                  <div class="font-display text-2xl font-bold text-[var(--accent)]">$4.20</div>
+                  <div class="text-[7px] text-[var(--muted)] mt-1">Bike · 3.2 km · 12 min</div>
+                </div>
+                <div class="space-y-1.5 mb-3">
+                  <div class="flex justify-between text-[8px]">
+                    <span class="text-[var(--muted)]">Base fare</span>
+                    <span class="text-[var(--fg)]">$2.49</span>
+                  </div>
+                  <div class="flex justify-between text-[8px]">
+                    <span class="text-[var(--muted)]">Distance</span>
+                    <span class="text-[var(--fg)]">$1.21</span>
+                  </div>
+                  <div class="flex justify-between text-[8px]">
+                    <span class="text-[var(--muted)]">Booking fee</span>
+                    <span class="text-[var(--fg)]">$0.50</span>
+                  </div>
+                </div>
+                <div class="text-[8px] font-bold mb-2 text-[var(--fg)]">Pay with</div>
+                <div class="space-y-1.5 flex-1">
+                  <div class="p-2 rounded-lg flex items-center gap-2 bg-white" style="border: 1px solid var(--accent);">
+                    <i class="fa-solid fa-credit-card text-[10px] text-[var(--accent)]"></i>
+                    <div class="flex-1 text-[8px] font-bold text-[var(--fg)]">•••• 4490</div>
+                    <i class="fa-solid fa-check text-[8px] text-[var(--accent)]"></i>
+                  </div>
+                  <div class="p-2 rounded-lg flex items-center gap-2 bg-[var(--bg-soft)] border border-[var(--border)]">
+                    <i class="fa-brands fa-google-pay text-[10px] text-[var(--muted)]"></i>
+                    <div class="flex-1 text-[8px] text-[var(--fg)]">Google Pay</div>
+                  </div>
+                </div>
+                <button class="mt-3 py-2 rounded-lg text-[9px] font-bold text-white" style="background: var(--accent);">Pay $4.20</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ STATISTICS ============ -->
+<section class="relative py-24 lg:py-32 overflow-hidden">
+  <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[400px] glow-coral opacity-20"></div>
+  <div class="relative max-w-7xl mx-auto px-6 lg:px-10">
+    <div class="text-center mb-16 reveal">
+      <span class="text-xs font-semibold tracking-[0.2em] uppercase text-[var(--accent)]">Numbers That Move</span>
+      <h2 class="font-display font-bold text-4xl md:text-5xl lg:text-6xl mt-3 mb-4 text-[var(--fg)]">Trusted by millions.</h2>
+    </div>
+
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-5">
+      <div class="text-center p-7 rounded-3xl reveal reveal-delay-1 bg-white border border-[var(--border)]" style="box-shadow: 0 10px 30px -15px rgba(0,0,0,0.1);">
+        <div class="font-display font-bold text-5xl md:text-6xl mb-2 stat-number" data-target="10" data-suffix="M+">0</div>
+        <div class="text-sm text-[var(--muted)]">Rides Completed</div>
+      </div>
+      <div class="text-center p-7 rounded-3xl reveal reveal-delay-2 bg-white border border-[var(--border)]" style="box-shadow: 0 10px 30px -15px rgba(0,0,0,0.1);">
+        <div class="font-display font-bold text-5xl md:text-6xl mb-2 stat-number" data-target="500" data-suffix="K+">0</div>
+        <div class="text-sm text-[var(--muted)]">Happy Riders</div>
+      </div>
+      <div class="text-center p-7 rounded-3xl reveal reveal-delay-3 bg-white border border-[var(--border)]" style="box-shadow: 0 10px 30px -15px rgba(0,0,0,0.1);">
+        <div class="font-display font-bold text-5xl md:text-6xl mb-2 stat-number" data-target="100" data-suffix="K+">0</div>
+        <div class="text-sm text-[var(--muted)]">Drivers</div>
+      </div>
+      <div class="text-center p-7 rounded-3xl reveal reveal-delay-4 bg-white border border-[var(--border)]" style="box-shadow: 0 10px 30px -15px rgba(0,0,0,0.1);">
+        <div class="font-display font-bold text-5xl md:text-6xl mb-2 stat-number" data-target="50" data-suffix="+">0</div>
+        <div class="text-sm text-[var(--muted)]">Cities</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ CUSTOMER REVIEWS ============ -->
+<section class="relative py-24 lg:py-32 overflow-hidden" style="background: var(--bg-soft);">
+  <div class="relative max-w-5xl mx-auto px-6 lg:px-10">
+    <div class="text-center mb-16 reveal">
+      <span class="text-xs font-semibold tracking-[0.2em] uppercase text-[var(--accent)]">Loved By Riders</span>
+      <h2 class="font-display font-bold text-4xl md:text-5xl lg:text-6xl mt-3 mb-4 text-[var(--fg)]">Stories from the road.</h2>
+    </div>
+
+    <div class="reveal reveal-delay-2 relative">
+      <div class="overflow-hidden rounded-3xl">
+        <div class="review-track flex" id="reviewTrack">
+          <div class="w-full flex-shrink-0 p-8 md:p-12 bg-white border border-[var(--border)]" style="box-shadow: 0 20px 40px -20px rgba(0,0,0,0.1);">
+            <div class="flex items-center gap-1 text-[var(--accent)] mb-6">
+              <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i>
+            </div>
+            <p class="font-display text-xl md:text-2xl font-medium leading-relaxed mb-8 text-[var(--fg)]">"The bike rides are incredibly fast and affordable. I use RideFlow almost every day for my commute — captains are always polite and on time."</p>
+            <div class="flex items-center gap-4">
+              <img src="https://picsum.photos/seed/rider1/80/80.jpg" alt="Maya Chen" class="w-12 h-12 rounded-full object-cover" loading="lazy">
+              <div>
+                <div class="font-semibold text-[var(--fg)]">Maya Chen</div>
+                <div class="text-xs text-[var(--muted)]">Daily commuter · San Francisco</div>
+              </div>
+            </div>
+          </div>
+          <div class="w-full flex-shrink-0 p-8 md:p-12 bg-white border border-[var(--border)]" style="box-shadow: 0 20px 40px -20px rgba(0,0,0,0.1);">
+            <div class="flex items-center gap-1 text-[var(--accent)] mb-6">
+              <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i>
+            </div>
+            <p class="font-display text-xl md:text-2xl font-medium leading-relaxed mb-8 text-[var(--fg)]">"Premium rides feel actually premium. Clean cars, professional drivers, and the safety features give my family peace of mind every single trip."</p>
+            <div class="flex items-center gap-4">
+              <img src="https://picsum.photos/seed/rider2/80/80.jpg" alt="James Okafor" class="w-12 h-12 rounded-full object-cover" loading="lazy">
+              <div>
+                <div class="font-semibold text-[var(--fg)]">James Okafor</div>
+                <div class="text-xs text-[var(--muted)]">Business traveler · London</div>
+              </div>
+            </div>
+          </div>
+          <div class="w-full flex-shrink-0 p-8 md:p-12 bg-white border border-[var(--border)]" style="box-shadow: 0 20px 40px -20px rgba(0,0,0,0.1);">
+            <div class="flex items-center gap-1 text-[var(--accent)] mb-6">
+              <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i>
+            </div>
+            <p class="font-display text-xl md:text-2xl font-medium leading-relaxed mb-8 text-[var(--fg)]">"I sent a parcel across the city in 18 minutes. Eighteen! RideFlow Parcel has genuinely replaced my courier service for anything local."</p>
+            <div class="flex items-center gap-4">
+              <img src="https://picsum.photos/seed/rider3/80/80.jpg" alt="Priya Sharma" class="w-12 h-12 rounded-full object-cover" loading="lazy">
+              <div>
+                <div class="font-semibold text-[var(--fg)]">Priya Sharma</div>
+                <div class="text-xs text-[var(--muted)]">Small business owner · Bangalore</div>
+              </div>
+            </div>
+          </div>
+          <div class="w-full flex-shrink-0 p-8 md:p-12 bg-white border border-[var(--border)]" style="box-shadow: 0 20px 40px -20px rgba(0,0,0,0.1);">
+            <div class="flex items-center gap-1 text-[var(--accent)] mb-6">
+              <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i>
+            </div>
+            <p class="font-display text-xl md:text-2xl font-medium leading-relaxed mb-8 text-[var(--fg)]">"Live tracking is the killer feature. My parents can see exactly where I am, and I can share my trip with one tap. Safety done right."</p>
+            <div class="flex items-center gap-4">
+              <img src="https://picsum.photos/seed/rider4/80/80.jpg" alt="Sofia Martinez" class="w-12 h-12 rounded-full object-cover" loading="lazy">
+              <div>
+                <div class="font-semibold text-[var(--fg)]">Sofia Martinez</div>
+                <div class="text-xs text-[var(--muted)]">Student · Mexico City</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="flex items-center justify-center gap-2 mt-8">
+        <button class="review-dot w-2 h-2 rounded-full bg-[var(--border-strong)] active" data-index="0"></button>
+        <button class="review-dot w-2 h-2 rounded-full bg-[var(--border-strong)]" data-index="1"></button>
+        <button class="review-dot w-2 h-2 rounded-full bg-[var(--border-strong)]" data-index="2"></button>
+        <button class="review-dot w-2 h-2 rounded-full bg-[var(--border-strong)]" data-index="3"></button>
+      </div>
+
+      <button id="prevReview" class="absolute top-1/2 -translate-y-1/2 -left-4 md:-left-6 w-11 h-11 rounded-full flex items-center justify-center bg-white border border-[var(--border)] hover:border-[var(--accent)] transition">
+        <i class="fa-solid fa-arrow-left text-sm text-[var(--fg)]"></i>
+      </button>
+      <button id="nextReview" class="absolute top-1/2 -translate-y-1/2 -right-4 md:-right-6 w-11 h-11 rounded-full flex items-center justify-center bg-white border border-[var(--border)] hover:border-[var(--accent)] transition">
+        <i class="fa-solid fa-arrow-right text-sm text-[var(--fg)]"></i>
+      </button>
+    </div>
+  </div>
+</section>
+
+<!-- ============ FINAL CTA (Fluid Wave Animation) ============ -->
+<section class="relative py-32 lg:py-40 overflow-hidden">
+  <div class="absolute inset-0 bg-grid opacity-30"></div>
+  <div class="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[400px] glow-coral opacity-30"></div>
+
+  <div class="wave-bg">
+    <svg viewBox="0 0 1200 200" preserveAspectRatio="none" class="w-full h-full">
+      <path d="M0,100 C200,150 400,50 600,100 C800,150 1000,50 1200,100 L1200,200 L0,200 Z" fill="rgba(255,107,53,0.1)">
+        <animate attributeName="d" dur="10s" repeatCount="indefinite" 
+          values="M0,100 C200,150 400,50 600,100 C800,150 1000,50 1200,100 L1200,200 L0,200 Z;
+                  M0,100 C200,50 400,150 600,100 C800,50 1000,150 1200,100 L1200,200 L0,200 Z;
+                  M0,100 C200,150 400,50 600,100 C800,150 1000,50 1200,100 L1200,200 L0,200 Z" />
+      </path>
+      <path d="M0,120 C200,80 400,160 600,120 C800,80 1000,160 1200,120 L1200,200 L0,200 Z" fill="rgba(58,134,255,0.15)">
+        <animate attributeName="d" dur="12s" repeatCount="indefinite" 
+          values="M0,120 C200,80 400,160 600,120 C800,80 1000,160 1200,120 L1200,200 L0,200 Z;
+                  M0,120 C200,160 400,80 600,120 C800,160 1000,80 1200,120 L1200,200 L0,200 Z;
+                  M0,120 C200,80 400,160 600,120 C800,80 1000,160 1200,120 L1200,200 L0,200 Z" />
+      </path>
+      <path d="M0,150 C300,100 500,180 800,140 C1000,110 1100,150 1200,140 L1200,200 L0,200 Z" fill="rgba(255,182,39,0.2)">
+        <animate attributeName="d" dur="8s" repeatCount="indefinite" 
+          values="M0,150 C300,100 500,180 800,140 C1000,110 1100,150 1200,140 L1200,200 L0,200 Z;
+                  M0,140 C300,180 500,100 800,150 C1000,180 1100,110 1200,150 L1200,200 L0,200 Z;
+                  M0,150 C300,100 500,180 800,140 C1000,110 1100,150 1200,140 L1200,200 L0,200 Z" />
+      </path>
+    </svg>
+  </div>
+
+  <div class="relative max-w-3xl mx-auto px-6 text-center z-10">
+    <div class="reveal">
+      <span class="text-xs font-semibold tracking-[0.2em] uppercase text-[var(--accent)]">Get Moving</span>
+      <h2 class="font-display font-bold text-5xl md:text-6xl lg:text-7xl mt-3 mb-5 text-[var(--fg)]">Ready to Ride?</h2>
+      <p class="text-lg text-[var(--muted)] mb-10 max-w-md mx-auto">Your next journey is just a tap away. Join millions who ride with RideFlow every day.</p>
+      <button class="btn-primary px-10 py-4 rounded-full text-base font-semibold inline-flex items-center gap-3">
+        Book Your Ride
+        <i class="fa-solid fa-arrow-right"></i>
+      </button>
+
+      <div class="mt-12 flex flex-wrap items-center justify-center gap-6 text-sm text-[var(--muted)]">
+        <div class="flex items-center gap-2">
+          <i class="fa-solid fa-check text-[var(--accent)] text-xs"></i> No surge pricing
+        </div>
+        <div class="flex items-center gap-2">
+          <i class="fa-solid fa-check text-[var(--accent)] text-xs"></i> Verified captains
+        </div>
+        <div class="flex items-center gap-2">
+          <i class="fa-solid fa-check text-[var(--accent)] text-xs"></i> 24/7 support
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ FOOTER ============ -->
+<footer id="contact" class="relative pt-20 pb-10" style="background: var(--bg-soft); border-top: 1px solid var(--border);">
+  <div class="max-w-7xl mx-auto px-6 lg:px-10">
+    <div class="grid lg:grid-cols-5 gap-10 mb-12">
+      <div class="lg:col-span-2">
+        <div class="flex items-center gap-2.5 mb-4">
+          <div class="w-9 h-9 rounded-lg flex items-center justify-center" style="background: linear-gradient(135deg, var(--accent), var(--accent-3));">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+              <path d="M3 14c3-6 7-9 12-9 4 0 6 3 6 6s-2 5-5 5h-3" stroke="#fff" stroke-width="2.5" stroke-linecap="round"/>
+              <circle cx="7" cy="17" r="3" stroke="#fff" stroke-width="2.5"/>
+              <circle cx="17" cy="17" r="3" stroke="#fff" stroke-width="2.5"/>
+            </svg>
+          </div>
+          <span class="font-display text-xl font-bold tracking-tight text-[var(--fg)]">RideFlow</span>
+        </div>
+        <p class="font-display text-lg mb-2 text-[var(--fg)]">"Your Ride. Your Way."</p>
+        <p class="text-sm text-[var(--muted)] max-w-xs mb-6">Fast, affordable and reliable rides — bikes, autos, cabs, premium, and parcel delivery, all in one app.</p>
+        <div class="flex items-center gap-3">
+          <a href="#" class="w-10 h-10 rounded-full flex items-center justify-center transition bg-white border border-[var(--border)] text-[var(--muted)] hover:text-[var(--accent)] hover:border-[var(--accent)]">
+            <i class="fa-brands fa-instagram"></i>
+          </a>
+          <a href="#" class="w-10 h-10 rounded-full flex items-center justify-center transition bg-white border border-[var(--border)] text-[var(--muted)] hover:text-[var(--accent)] hover:border-[var(--accent)]">
+            <i class="fa-brands fa-facebook-f"></i>
+          </a>
+          <a href="#" class="w-10 h-10 rounded-full flex items-center justify-center transition bg-white border border-[var(--border)] text-[var(--muted)] hover:text-[var(--accent)] hover:border-[var(--accent)]">
+            <i class="fa-brands fa-x-twitter"></i>
+          </a>
+          <a href="#" class="w-10 h-10 rounded-full flex items-center justify-center transition bg-white border border-[var(--border)] text-[var(--muted)] hover:text-[var(--accent)] hover:border-[var(--accent)]">
+            <i class="fa-brands fa-linkedin-in"></i>
+          </a>
+        </div>
+      </div>
+
+      <div>
+        <h4 class="font-display font-bold text-sm mb-4 text-[var(--fg)]">Company</h4>
+        <ul class="space-y-3 text-sm text-[var(--muted)]">
+          <li><a href="#" class="hover:text-[var(--accent)] transition">About</a></li>
+          <li><a href="#" class="hover:text-[var(--accent)] transition">Careers</a></li>
+          <li><a href="#" class="hover:text-[var(--accent)] transition">Blog</a></li>
+          <li><a href="#" class="hover:text-[var(--accent)] transition">Contact</a></li>
+        </ul>
+      </div>
+
+      <div>
+        <h4 class="font-display font-bold text-sm mb-4 text-[var(--fg)]">Services</h4>
+        <ul class="space-y-3 text-sm text-[var(--muted)]">
+          <li><a href="#" class="hover:text-[var(--accent)] transition">Bike</a></li>
+          <li><a href="#" class="hover:text-[var(--accent)] transition">Auto</a></li>
+          <li><a href="#" class="hover:text-[var(--accent)] transition">Cab</a></li>
+          <li><a href="#" class="hover:text-[var(--accent)] transition">Premium</a></li>
+          <li><a href="#" class="hover:text-[var(--accent)] transition">Parcel</a></li>
+        </ul>
+      </div>
+
+      <div>
+        <h4 class="font-display font-bold text-sm mb-4 text-[var(--fg)]">Support</h4>
+        <ul class="space-y-3 text-sm text-[var(--muted)]">
+          <li><a href="#" class="hover:text-[var(--accent)] transition">Help Center</a></li>
+          <li><a href="#" class="hover:text-[var(--accent)] transition">Safety</a></li>
+          <li><a href="#" class="hover:text-[var(--accent)] transition">Terms</a></li>
+          <li><a href="#" class="hover:text-[var(--accent)] transition">Privacy</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="pt-8 border-t border-[var(--border)] flex flex-col md:flex-row items-center justify-between gap-4">
+      <p class="text-xs text-[var(--muted)]">© 2024 RideFlow Technologies Inc. All rights reserved.</p>
+      <div class="flex items-center gap-6 text-xs text-[var(--muted)]">
+        <a href="#" class="hover:text-[var(--accent)] transition">Terms of Service</a>
+        <a href="#" class="hover:text-[var(--accent)] transition">Privacy Policy</a>
+        <a href="#" class="hover:text-[var(--accent)] transition">Cookies</a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<!-- Toast -->
+<div id="toast" class="toast fixed bottom-6 left-1/2 -translate-x-1/2 z-50 px-5 py-3 rounded-2xl flex items-center gap-3 bg-white" style="border: 1px solid var(--border-strong); box-shadow: 0 20px 40px -10px rgba(0,0,0,0.15);">
+  <div class="w-8 h-8 rounded-full flex items-center justify-center text-white" style="background: var(--accent);">
+    <i class="fa-solid fa-check text-xs"></i>
+  </div>
+  <div>
+    <div class="text-sm font-semibold text-[var(--fg)]" id="toastTitle">Ride confirmed</div>
+    <div class="text-xs text-[var(--muted)]" id="toastBody">Your captain is on the way.</div>
+  </div>
+</div>
+
+<script>
+  // Navbar scroll
+  const navbar = document.querySelector('.navbar');
+  window.addEventListener('scroll', () => {
+    if (window.scrollY > 20) navbar.classList.add('scrolled');
+    else navbar.classList.remove('scrolled');
+  });
+
+  // Mobile menu
+  const menuBtn = document.getElementById('menuBtn');
+  const closeMenu = document.getElementById('closeMenu');
+  const mobileMenu = document.getElementById('mobileMenu');
+  menuBtn.addEventListener('click', () => mobileMenu.classList.add('open'));
+  closeMenu.addEventListener('click', () => mobileMenu.classList.remove('open'));
+  document.querySelectorAll('.mobile-link').forEach(link => {
+    link.addEventListener('click', () => mobileMenu.classList.remove('open'));
+  });
+
+  // Hero particles
+  const particlesContainer = document.getElementById('particles');
+  function createParticle() {
+    const p = document.createElement('div');
+    p.className = 'particle';
+    const size = Math.random() * 4 + 1;
+    p.style.width = size + 'px';
+    p.style.height = size + 'px';
+    p.style.left = Math.random() * 100 + '%';
+    p.style.bottom = '-10px';
+    p.style.animationDuration = (Math.random() * 8 + 6) + 's';
+    p.style.opacity = Math.random() * 0.5 + 0.2;
+    const colors = ['rgba(255, 107, 53, 0.6)', 'rgba(58, 134, 255, 0.6)', 'rgba(255, 182, 39, 0.6)'];
+    p.style.background = colors[Math.floor(Math.random() * colors.length)];
+    particlesContainer.appendChild(p);
+    setTimeout(() => p.remove(), 14000);
+  }
+  setInterval(createParticle, 400);
+  for (let i = 0; i < 10; i++) setTimeout(createParticle, i * 300);
+
+  // Ride option selection (booking card)
+  const rideOptions = document.querySelectorAll('.ride-option');
+  rideOptions.forEach(opt => {
+    opt.addEventListener('click', () => {
+      rideOptions.forEach(o => o.classList.remove('active'));
+      opt.classList.add('active');
+    });
+  });
+
+  // Find ride button → toast
+  const findRideBtn = document.getElementById('findRideBtn');
+  const toast = document.getElementById('toast');
+  const toastTitle = document.getElementById('toastTitle');
+  const toastBody = document.getElementById('toastBody');
+  findRideBtn.addEventListener('click', () => {
+    const active = document.querySelector('.ride-option.active');
+    const rideName = active ? active.querySelector('.font-display').textContent : 'ride';
+    const ridePrice = active ? active.querySelector('.font-bold').textContent : '';
+    toastTitle.textContent = `Searching ${rideName} rides`;
+    toastBody.textContent = `Found rides starting at ${ridePrice}. Captain assigning...`;
+    toast.classList.add('show');
+    setTimeout(() => toast.classList.remove('show'), 3500);
+  });
+
+  // Reveal on scroll
+  const revealObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('visible');
+        revealObserver.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.15 });
+  document.querySelectorAll('.reveal').forEach(el => revealObserver.observe(el));
+
+  // Animated counters
+  const statObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        const el = entry.target;
+        const target = parseInt(el.dataset.target);
+        const suffix = el.dataset.suffix || '';
+        let current = 0;
+        const duration = 2000;
+        const stepTime = 30;
+        const steps = duration / stepTime;
+        const increment = target / steps;
+        const counter = setInterval(() => {
+          current += increment;
+          if (current >= target) {
+            current = target;
+            clearInterval(counter);
+          }
+          el.textContent = Math.floor(current) + suffix;
+        }, stepTime);
+        statObserver.unobserve(el);
+      }
+    });
+  }, { threshold: 0.5 });
+  document.querySelectorAll('.stat-number').forEach(el => statObserver.observe(el));
+
+  // ===== HOLOGRAPHIC HUD CURSOR ANIMATION =====
+  const hudRoutePath = document.getElementById('hudRoutePath');
+  const hudTraveledPath = document.getElementById('hudTraveledPath');
+  const hudCursor = document.getElementById('hudCursor');
+  const hudSpeedEl = document.getElementById('hud-speed');
+  const hudSpeed2El = document.getElementById('hud-speed-2');
+  const hdgEl = document.getElementById('hdg-val');
+  const latEl = document.getElementById('hud-lat');
+  const lonEl = document.getElementById('hud-lon');
+
+  if (hudRoutePath && hudCursor) {
+    const pathLength = hudRoutePath.getTotalLength();
+    
+    // Initialize Traveled Path
+    hudTraveledPath.style.strokeDasharray = pathLength;
+    hudTraveledPath.style.strokeDashoffset = pathLength;
+
+    let progress = 0;
+    let speed = 0.8; // Speed of the cursor
+    
+    function animateHudCursor() {
+      progress = (progress + speed) % pathLength;
+      
+      // Move Cursor
+      const point = hudRoutePath.getPointAtLength(progress);
+      hudCursor.setAttribute('transform', `translate(${point.x},${point.y})`);
+      
+      // Update Traveled Path
+      hudTraveledPath.style.strokeDashoffset = pathLength - progress;
+      
+      // Update Telematics UI randomly
+      if (Math.floor(progress) % 10 === 0) {
+        const randSpeed = Math.floor(Math.random() * 10) + 38; // 38-48
+        const randHdg = Math.floor(Math.random() * 360).toString().padStart(3, '0') + '°';
+        const randLat = (40.7128 + (Math.random() * 0.0002 - 0.0001)).toFixed(4) + '° N';
+        const randLon = (74.0060 + (Math.random() * 0.0002 - 0.0001)).toFixed(4) + '° W';
+        
+        if (hudSpeedEl) hudSpeedEl.textContent = randSpeed + ' MPH';
+        if (hudSpeed2El) hudSpeed2El.textContent = randSpeed;
+        if (hdgEl) hdgEl.textContent = randHdg;
+        if (latEl) latEl.textContent = randLat;
+        if (lonEl) lonEl.textContent = randLon;
+      }
+      
+      requestAnimationFrame(animateHudCursor);
+    }
+    animateHudCursor();
+  }
+
+  // Review carousel
+  const track = document.getElementById('reviewTrack');
+  const dots = document.querySelectorAll('.review-dot');
+  const prevBtn = document.getElementById('prevReview');
+  const nextBtn = document.getElementById('nextReview');
+  let reviewIndex = 0;
+  const totalReviews = 4;
+
+  function updateReview() {
+    track.style.transform = `translateX(-${reviewIndex * 100}%)`;
+    dots.forEach((d, i) => d.classList.toggle('active', i === reviewIndex));
+  }
+  dots.forEach(dot => {
+    dot.addEventListener('click', () => {
+      reviewIndex = parseInt(dot.dataset.index);
+      updateReview();
+    });
+  });
+  nextBtn.addEventListener('click', () => {
+    reviewIndex = (reviewIndex + 1) % totalReviews;
+    updateReview();
+  });
+  prevBtn.addEventListener('click', () => {
+    reviewIndex = (reviewIndex - 1 + totalReviews) % totalReviews;
+    updateReview();
+  });
+  let reviewInterval = setInterval(() => {
+    reviewIndex = (reviewIndex + 1) % totalReviews;
+    updateReview();
+  }, 6000);
+  track.addEventListener('mouseenter', () => clearInterval(reviewInterval));
+  track.addEventListener('mouseleave', () => {
+    reviewInterval = setInterval(() => {
+      reviewIndex = (reviewIndex + 1) % totalReviews;
+      updateReview();
+    }, 6000);
+  });
+
+  // Service card 3D tilt
+  document.querySelectorAll('.service-card').forEach(card => {
+    card.addEventListener('mousemove', (e) => {
+      const rect = card.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+      const cx = rect.width / 2;
+      const cy = rect.height / 2;
+      const rx = ((y - cy) / cy) * -6;
+      const ry = ((x - cx) / cx) * 6;
+      card.style.transform = `translateY(-8px) rotateX(${rx}deg) rotateY(${ry}deg)`;
+    });
+    card.addEventListener('mouseleave', () => {
+      card.style.transform = '';
+    });
+  });
+
+  // Smooth anchor offset
+  document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+    anchor.addEventListener('click', function(e) {
+      const target = document.querySelector(this.getAttribute('href'));
+      if (target) {
+        e.preventDefault();
+        const top = target.getBoundingClientRect().top + window.scrollY - 80;
+        window.scrollTo({ top, behavior: 'smooth' });
+      }
+    });
+  });
+</script>
+</body>
+</html>
