@@ -23,10 +23,6 @@
     --accent-2: #3A86FF;
     --accent-3: #FFB627;
     --success: #2E7D32;
-    --hud-bg: #050a0f;
-    --hud-green: #00ff9d;
-    --hud-cyan: #00f3ff;
-    --hud-orange: #ff6b35;
   }
   * { -webkit-font-smoothing: antialiased; }
   html { scroll-behavior: smooth; }
@@ -179,140 +175,44 @@
   }
   @keyframes lineFlow { from { transform: translateX(-100%); } to { transform: translateX(100%); } }
 
-  /* ===== HOLOGRAPHIC HUD MAP (LIVE RIDE EXPERIENCE) ===== */
-  .hud-container {
-    position: relative;
-    width: 100%;
-    aspect-ratio: 16/10;
-    background: var(--hud-bg);
-    border-radius: 24px;
-    overflow: hidden;
-    box-shadow: 0 0 0 1px rgba(0, 255, 157, 0.3), 0 0 40px rgba(0, 255, 157, 0.15), 0 40px 80px -20px rgba(0,0,0,0.8);
+  /* ===== LIVE TRACKING MAP (from rideflow-landing.html) ===== */
+  .track-wrap {
+    display: grid; grid-template-columns: 1.15fr .85fr; gap: 0; border: 1px solid var(--border); border-radius: 24px;
+    overflow: hidden; background: var(--surface);
   }
-
-  .hud-map-image {
-    position: absolute;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    opacity: 0.5;
-    filter: grayscale(1) contrast(1.2) brightness(0.8);
-    /* Fallback */
-    background-color: #0a1520;
-    background-image: url('https://images.unsplash.com/photo-1583897553631-0953c1c5c8c0?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80');
-    background-size: cover;
-    background-position: center;
-  }
-
-  .hud-overlay {
-    position: absolute;
-    inset: 0;
-    pointer-events: none;
-    background: radial-gradient(circle at center, transparent 0%, rgba(5, 10, 15, 0.8) 100%);
-  }
-
-  .hud-grid {
-    position: absolute;
-    inset: 0;
-    background-image: 
-      linear-gradient(rgba(0, 255, 157, 0.15) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(0, 255, 157, 0.15) 1px, transparent 1px);
-    background-size: 40px 40px;
-    background-position: center;
-    box-shadow: inset 0 0 100px rgba(0, 255, 157, 0.1);
-  }
-
-  .hud-scanline {
-    position: absolute;
-    top: 0; left: 0; right: 0;
-    height: 100%;
-    background: linear-gradient(to bottom, transparent 0%, rgba(0, 255, 157, 0.1) 50%, transparent 100%);
-    animation: scanline 6s linear infinite;
-    opacity: 0.6;
-    mix-blend-mode: screen;
-  }
-  @keyframes scanline {
-    0% { transform: translateY(-100%); }
-    100% { transform: translateY(100%); }
-  }
-
-  .hud-route-remaining {
-    fill: none;
-    stroke: var(--hud-orange);
-    stroke-width: 4;
-    stroke-linecap: round;
-    stroke-dasharray: 12 8;
-    filter: drop-shadow(0 0 6px var(--hud-orange));
-    animation: dashMove 1.5s linear infinite;
-  }
-  @keyframes dashMove { to { stroke-dashoffset: -20; } }
-
-  .hud-route-traveled {
-    fill: none;
-    stroke: var(--hud-cyan);
-    stroke-width: 3;
-    stroke-linecap: round;
-    filter: drop-shadow(0 0 8px var(--hud-cyan));
-  }
-
-  .hud-cursor {
-    filter: drop-shadow(0 0 12px var(--hud-green));
-  }
+  .map {
+    position: relative; background: #87f611
+      linear-gradient(#e54399,0deg, transparent 24px, var(--border) 25px, transparent 26px) 0 0/52px 52px );
   
-  /* Targeting Reticle Animation */
-  @keyframes targetSweep {
-    0% { transform: scale(0.8); opacity: 0.8; }
-    100% { transform: scale(1.5); opacity: 0; }
+      linear-gradient(blue,90deg, transparent 24px, var(--border) 25px, transparent 26px) 0 0/52px 52px,
+      var(--bg-soft);
+    min-height: 420px; overflow: hidden;
   }
-  .target-ring {
-    transform-origin: center;
-    transform-box: fill-box;
-    animation: targetSweep 2s ease-out infinite;
+  .map .blob { position: absolute; border-radius: 40% 60% 55% 45%/50% 45% 55% 50%; background: #a4e543; }
+  .route-svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+  .route-path { fill: none; stroke: var(--fg); stroke-width: 3; stroke-dasharray: 8 8; opacity: .35; }
+  .route-progress { fill: none; stroke: var(--accent); stroke-width: 3.5; stroke-linecap: round; stroke-dasharray: 340; stroke-dashoffset: 340; animation: drawRoute 4s cubic-bezier(.16,.84,.44,1) infinite; }
+  @keyframes drawRoute { 0% { stroke-dashoffset: 340; } 65%,100% { stroke-dashoffset: 0; } }
+  .pin { position: absolute; transform: translate(-50%, -100%); }
+  .vehicle-marker {
+    position: absolute; width: 34px; height: 34px; background: var(--fg); border-radius: 50%;
+    display: flex; align-items: center; justify-content: center; offset-rotate: 0deg;
+    animation: moveAlong 4s cubic-bezier(.16,.84,.44,1) infinite; box-shadow: 0 8px 16px -6px rgba(159, 208, 52, 0.5);
   }
-  .target-ring-2 {
-    transform-origin: center;
-    transform-box: fill-box;
-    animation: targetSweep 2s ease-out infinite;
-    animation-delay: 1s;
+  @keyframes moveAlong {
+    0% { offset-distance: 0%; } 65%,100% { offset-distance: 100%; }
   }
-
-  /* UI Panels */
-  .hud-panel {
-    position: absolute;
-    background: rgba(5, 10, 15, 0.7);
-    backdrop-filter: blur(8px);
-    border: 1px solid rgba(0, 255, 157, 0.3);
-    box-shadow: 0 0 15px rgba(0, 255, 157, 0.1);
-    color: var(--hud-green);
-    font-family: 'Space Grotesk', monospace;
-    z-index: 10;
-  }
-  
-  .hud-panel::before {
-    content: '';
-    position: absolute;
-    top: -1px; left: -1px;
-    width: 10px; height: 10px;
-    border-top: 2px solid var(--hud-green);
-    border-left: 2px solid var(--hud-green);
-  }
-  .hud-panel::after {
-    content: '';
-    position: absolute;
-    bottom: -1px; right: -1px;
-    width: 10px; height: 10px;
-    border-bottom: 2px solid var(--hud-green);
-    border-right: 2px solid var(--hud-green);
-  }
-
-  .hud-panel-orange {
-    border-color: rgba(255, 107, 53, 0.4);
-    box-shadow: 0 0 15px rgba(255, 107, 53, 0.15);
-    color: var(--hud-orange);
-  }
-  .hud-panel-orange::before { border-color: var(--hud-orange); }
-  .hud-panel-orange::after { border-color: var(--hud-orange); }
+  .ride-info { padding: 38px; display: flex; flex-direction: column; justify-content: center; gap: 22px; }
+  .driver-row { display: flex; align-items: center; gap: 14px; }
+  .driver-avatar { width: 52px; height: 52px; border-radius: 50%; background: var(--fg); display: flex; align-items: center; justify-content: center; color: var(--accent); font-family: 'Space Grotesk'; font-weight: 700; }
+  .driver-name { font-size: 17px; font-weight: 600; }
+  .driver-rating { color: var(--muted); font-size: 13px; font-family: 'IBM Plex Mono', monospace; }
+  .eta-badge { background: var(--fg); color: var(--accent); border-radius: 10px; padding: 20px; }
+  .eta-badge .big { font-family: 'IBM Plex Mono', monospace; font-size: 34px; font-weight: 600; }
+  .eta-badge .lbl { font-size: 12.5px; opacity: .7; margin-top: 2px; }
+  .ride-meta { display: flex; gap: 26px; }
+  .ride-meta div small { display: block; color: var(--muted); font-size: 12px; margin-bottom: 4px; }
+  .ride-meta div span { font-family: 'IBM Plex Mono', monospace; font-size: 16px; font-weight: 600; }
 
   .feature-card {
     background: var(--surface);
@@ -407,6 +307,10 @@
   @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
   }
+
+  @media (max-width: 980px) {
+    .track-wrap { grid-template-columns: 1fr; }
+  }
 </style>
 </head>
 <body class="relative">
@@ -429,9 +333,9 @@
       <a href="#home" class="nav-link active">Home</a>
       <a href="#services" class="nav-link">Services</a>
       <a href="#how" class="nav-link">How It Works</a>
+      <a href="#tracking" class="nav-link">Live Tracking</a>
       <a href="#safety" class="nav-link">Safety</a>
       <a href="#about" class="nav-link">About</a>
-      <a href="#contact" class="nav-link">Contact</a>
     </div>
 
     <div class="hidden lg:flex items-center gap-3">
@@ -457,9 +361,9 @@
     <a href="#home" class="mobile-link text-[var(--fg)] font-semibold">Home</a>
     <a href="#services" class="mobile-link text-[var(--muted)]">Services</a>
     <a href="#how" class="mobile-link text-[var(--muted)]">How It Works</a>
+    <a href="#tracking" class="mobile-link text-[var(--muted)]">Live Tracking</a>
     <a href="#safety" class="mobile-link text-[var(--muted)]">Safety</a>
     <a href="#about" class="mobile-link text-[var(--muted)]">About</a>
-    <a href="#contact" class="mobile-link text-[var(--muted)]">Contact</a>
   </div>
   <div class="mt-10 flex flex-col gap-3">
     <button class="btn-ghost py-3 rounded-full text-sm font-medium">Login</button>
@@ -519,7 +423,6 @@
       </div>
     </div>
 
-    <!-- ===== HERO VISUAL WITH SLOW BREATHING ===== -->
     <div class="relative h-[400px] md:h-[500px] lg:h-[560px]">
       <div class="absolute inset-0 flex items-center justify-center">
         <div class="breathing-ring w-[380px] h-[380px] rounded-full" style="background: radial-gradient(circle, rgba(255,107,53,0.15) 0%, transparent 70%);"></div>
@@ -562,7 +465,7 @@
       <div class="absolute top-1/2 -translate-y-1/2 right-2 float" style="animation-delay: 0.8s;">
         <div class="booking-card rounded-2xl px-4 py-3">
           <div class="text-xs text-[var(--muted)] mb-1">Starting from</div>
-          <div class="font-display text-2xl font-bold text-[var(--accent)]">$2.49</div>
+          <div class="font-display text-2xl font-bold text-[var(--accent)]">₹20</div>
         </div>
       </div>
 
@@ -796,7 +699,7 @@
         <div class="flex items-center justify-between pt-5 border-t border-[var(--border)]">
           <div>
             <div class="text-xs text-[var(--muted)]">Starting</div>
-            <div class="font-bold text-[var(--accent)]">60</div>
+            <div class="font-bold text-[var(--accent)]">₹60</div>
           </div>
           <button class="text-xs font-semibold flex items-center gap-1 hover:gap-2 transition-all text-[var(--fg)]">
             Book now <i class="fa-solid fa-arrow-right text-[10px]"></i>
@@ -902,117 +805,50 @@
   </div>
 </section>
 
-<!-- ============ LIVE RIDE EXPERIENCE (Holographic HUD) ============ -->
-<section class="relative py-24 lg:py-32 overflow-hidden" style="background: #cbbda5; color: #fff;">
-  <div class="absolute inset-0 bg-grid opacity-10"></div>
-  <div class="absolute -top-20 right-0 w-[500px] h-[500px] glow-coral opacity-30"></div>
-  
+<!-- ============ LIVE TRACKING (from rideflow-landing.html) ============ -->
+<section id="tracking" class="relative py-24 lg:py-32">
+  <div class="absolute top-1/2 left-0 w-[400px] h-[400px] glow-coral opacity-40"></div>
   <div class="relative max-w-7xl mx-auto px-6 lg:px-10">
     <div class="text-center mb-16 reveal">
-      <span class="text-xl font-semibold tracking-[0.2em] uppercase text-[var(--lime-green)]">LIVE RIDE EXPERIENCE</span>
-      <h2 class="font-display font-bold text-4xl md:text-5xl lg:text-6xl mt-3 mb-4 text-white">RIDE Tracking.</h2>
-      <p class="text-gray-500 max-w-xl mx-auto"></p>
+      <span class="text-xs font-semibold tracking-[0.2em] uppercase text-[var(--accent)]">Live Tracking</span>
+      <h2 class="font-display font-bold text-4xl md:text-5xl lg:text-6xl mt-3 mb-4 text-[var(--fg)]">Watch your ride, turn by turn</h2>
+      <p class="text-[var(--muted)] max-w-xl mx-auto">From the moment your driver accepts, follow every meter of the route on a live map.</p>
     </div>
-
-    <div class="grid lg:grid-cols-5 gap-10 items-center">
-      
-      <div class="lg:col-span-2 reveal reveal-delay-1 space-y-6">
-        <div class="p-6 rounded-3xl border border-[var(--hud-green)]/30" style="background: rgba(227, 31, 126, 0.02); box-shadow: 0 0 30px rgba(0, 255, 157, 0.05);">
-          <div class="flex items-center gap-2 text-[var(--hud-green)] mb-4 font-mono text-sm">
-            <span class="w-2 h-2 rounded-full bg-[var(--lime-green)] animate-pulse"></span>
-            ASSET: CAR-742
-          </div>
-          <h3 class="font-display text-3xl font-bold mb-2 text-white">Live Status: En Route</h3>
-          <p class="text-gray-500 mb-6"></p>
-          
-          <div class="grid grid-cols-3 gap-4 mb-6">
-            <div class="p-4 rounded-xl border border-[var(--hud-green)]/20 bg-black/30">
-              <i class="fa-solid fa-gauge-high text-[var(--hud-orange)] mb-2"></i>
-              <div class="text-[10px] text-gray-500 font-mono">SPEED</div>
-              <div class="font-display font-bold text-xl text-white" id="hud-speed">42 MPH</div>
-            </div>
-            <div class="p-4 rounded-xl border border-[var(--hud-green)]/20 bg-black/30">
-              <i class="fa-solid fa-hourglass-half text-[var(--hud-green)] mb-2"></i>
-              <div class="text-[10px] text-gray-500 font-mono">ETA</div>
-              <div class="font-display font-bold text-xl text-white">14 MIN</div>
-            </div>
-            <div class="p-4 rounded-xl border border-[var(--hud-green)]/20 bg-black/30">
-              <i class="fa-solid fa-route text-[var(--hud-cyan)] mb-2"></i>
-              <div class="text-[10px] text-gray-500 font-mono">DISTANCE</div>
-              <div class="font-display font-bold text-xl text-white">6 KM</div>
-            </div>
-          </div>
-
-          <div class="flex items-center gap-2 text-sm text-gray-400 font-mono">
-            <i class="fa-solid fa-shield-halved text-[var(--hud-green)]"></i>
-            SECURE AND SAFE RIDE
-          </div>
+    
+    <div class="track-wrap reveal">
+      <div class="map">
+        <div class="blob" style="width:180px; height:140px; top:20px; left:-40px;"></div>
+        <div class="blob" style="width:220px; height:160px; bottom:-40px; right:-60px;"></div>
+        <svg class="route-svg" viewBox="0 0 400 420" preserveAspectRatio="none">
+          <path class="route-path" d="M70 350 C 120 300, 90 250, 150 220 S 260 190, 240 130 S 320 80, 330 60" />
+          <path class="route-progress" d="M70 350 C 120 300, 90 250, 150 220 S 260 190, 240 130 S 320 80, 330 60" />
+        </svg>
+        <div class="pin start" style="left:70px; top:350px;">
+          <svg width="26" height="34" viewBox="0 0 24 30" fill="none"><path d="M12 0c6.6 0 12 5.2 12 11.6C24 20 12 30 12 30S0 20 0 11.6C0 5.2 5.4 0 12 0z" fill="#1F2421"/><circle cx="12" cy="11" r="4.5" fill="#FAFAF3"/></svg>
+        </div>
+        <div class="pin end" style="left:330px; top:60px;">
+          <svg width="26" height="34" viewBox="0 0 24 30" fill="none"><path d="M12 0c6.6 0 12 5.2 12 11.6C24 20 12 30 12 30S0 20 0 11.6C0 5.2 5.4 0 12 0z" fill="#FF6B35"/><circle cx="12" cy="11" r="4.5" fill="#1F2421"/></svg>
+        </div>
+        <div class="vehicle-marker" style="offset-path: path('M70 350 C 120 300, 90 250, 150 220 S 260 190, 240 130 S 320 80, 330 60');">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><circle cx="6" cy="17" r="3" stroke="#FF6B35" stroke-width="1.8"/><circle cx="18" cy="17" r="3" stroke="#FF6B35" stroke-width="1.8"/><path d="M6 17l3-8h4l3 4h2M9 9l2-3h3" stroke="#FF6B35" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
         </div>
       </div>
-
-      <!-- Right: Holographic Map UI -->
-      <div class="lg:col-span-3 reveal reveal-delay-2">
-        <div class="hud-container" style="background-color: #503a47;">
-          <!-- Provided Map Image -->
-          <img src="https://z-cdn-media.chatglm.cn/files/c02f76d3-f46c-49a4-9bca-7c7d14102b0d.jpg?auth_key=1886434024-5cc3e0e23fba4d279f7d85bc3dcd908f-0-8dc3a7b10f7e1f6f3b97787868779a0f" 
-               alt="Navigation Map" 
-               class="hud-map-image"
-               onerror="this.onerror=null;this.style.display='none';">
-          
-          <!-- Dark Overlay -->
-          <div class="hud-overlay"></div>
-
-          <!-- Holographic Grid -->
-          <div class="hud-grid"></div>
-
-          <!-- Scanline Effect -->
-          <div class="hud-scanline"></div>
-
-          <!-- SVG Graphics Overlay -->
-          <svg class="absolute inset-0 w-full h-full" viewBox="0 0 800 500" preserveAspectRatio="xMidYMid slice">
-            <defs>
-              <filter id="hudGlow" x="-20%" y="-20%" width="140%" height="140%">
-                <feGaussianBlur stdDeviation="4" result="b" />
-                <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
-              </filter>
-            </defs>
-
-            <!-- Remaining Route (Orange dashed) -->
-            <path id="hudRoutePath" d="M 150,450 C 150,350 250,350 250,300 C 250,250 400,250 400,200 C 400,150 550,150 550,100 C 550,60 650,60 650,50" 
-                  fill="none" stroke="#ff6b35" stroke-width="5" stroke-linecap="round" stroke-dasharray="12 8" filter="url(#hudGlow)" />
-            
-            <!-- Traveled Route (Cyan) -->
-            <path id="hudTraveledPath" d="M 150,450 C 150,350 250,350 250,300 C 250,250 400,250 400,200 C 400,150 550,150 550,100 C 550,60 650,60 650,50" 
-                  fill="none" stroke="#00f3ff" stroke-width="4" stroke-linecap="round" filter="url(#hudGlow)" />
-            
-            <!-- Destination Marker (Top Right) -->
-            <g transform="translate(650, 50)">
-              <circle r="12" fill="none" stroke="#ff6b35" stroke-width="1.5" class="target-ring" />
-              <circle r="12" fill="none" stroke="#ff6b35" stroke-width="1.5" class="target-ring-2" />
-              <circle r="6" fill="none" stroke="#ff6b35" stroke-width="2" />
-              <line x1="-15" y1="0" x2="-5" y2="0" stroke="#ff6b35" stroke-width="2" filter="url(#hudGlow)"/>
-              <line x1="5" y1="0" x2="15" y2="0" stroke="#ff6b35" stroke-width="2" filter="url(#hudGlow)"/>
-              <line x1="0" y1="-15" x2="0" y2="-5" stroke="#ff6b35" stroke-width="2" filter="url(#hudGlow)"/>
-              <line x1="0" y1="5" x2="0" y2="15" stroke="#ff6b35" stroke-width="2" filter="url(#hudGlow)"/>
-            </g>
-
-            <!-- Live Tracking Cursor -->
-            <g id="hudCursor" class="hud-cursor">
-              <!-- Outer Pulsing Rings -->
-              <circle r="20" fill="none" stroke="#00ff9d" stroke-width="1.5" opacity="0.6" class="target-ring" />
-              <circle r="20" fill="none" stroke="#00ff9d" stroke-width="1.5" opacity="0.4" class="target-ring-2" />
-              <!-- Reticle -->
-              <circle r="10" fill="none" stroke="#00ff9d" stroke-width="2" filter="url(#hudGlow)" />
-              <circle r="2" fill="#00ff9d" filter="url(#hudGlow)" />
-              <line x1="-15" y1="0" x2="-5" y2="0" stroke="#00ff9d" stroke-width="2" filter="url(#hudGlow)"/>
-              <line x1="5" y1="0" x2="15" y2="0" stroke="#00ff9d" stroke-width="2" filter="url(#hudGlow)"/>
-              <line x1="0" y1="-15" x2="0" y2="-5" stroke="#00ff9d" stroke-width="2" filter="url(#hudGlow)"/>
-              <line x1="0" y1="5" x2="0" y2="15" stroke="#00ff9d" stroke-width="2" filter="url(#hudGlow)"/>
-            </g>
-          </svg>
-
-          
-          
+      <div class="ride-info">
+        <div class="driver-row">
+          <div class="driver-avatar">A</div>
+          <div>
+            <div class="driver-name">Alex is on the way</div>
+            <div class="driver-rating">★ 4.9 rating · Honda Activa · KA 05 AB 4021</div>
+          </div>
+        </div>
+        <div class="eta-badge">
+          <div class="big">3 min</div>
+          <div class="lbl">Arriving in</div>
+        </div>
+        <div class="ride-meta">
+          <div><small>Distance</small><span>3.2 km</span></div>
+          <div><small>Fare</small><span>₹4.20</span></div>
+          <div><small>Trip ID</small><span>#RF-7042</span></div>
         </div>
       </div>
     </div>
@@ -1078,7 +914,7 @@
 <!-- ============ SAFETY SECTION ============ -->
 <section id="safety" class="relative py-24 lg:py-32 overflow-hidden">
   <div class="absolute inset-0 bg-grid opacity-30"></div>
-  <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] glow-coral opacity-25"></div>
+  <div class="absolute top-1/2 left-1/2 -translate-x/2 -translate-y-1/2 w-[600px] h-[600px] glow-coral opacity-25"></div>
 
   <div class="relative max-w-7xl mx-auto px-6 lg:px-10">
     <div class="grid lg:grid-cols-2 gap-16 items-center">
@@ -1182,7 +1018,7 @@
 </section>
 
 <!-- ============ MOBILE APP ============ -->
-<section class="relative py-24 lg:py-32 overflow-hidden" style="background: var(--bg-soft);">
+<section id="about" class="relative py-24 lg:py-32 overflow-hidden" style="background: var(--bg-soft);">
   <div class="absolute -bottom-20 -left-20 w-[400px] h-[400px] glow-blue opacity-40"></div>
   <div class="relative max-w-7xl mx-auto px-6 lg:px-10">
     <div class="grid lg:grid-cols-2 gap-16 items-center">
@@ -1254,7 +1090,7 @@
                       <div class="text-[8px] font-bold text-[var(--fg)]">Bike</div>
                       <div class="text-[6px] text-[var(--muted)]">2 min away</div>
                     </div>
-                    <div class="text-[8px] font-bold text-[var(--accent)]">$2.49</div>
+                    <div class="text-[8px] font-bold text-[var(--accent)]">₹20</div>
                   </div>
                   <div class="p-2 rounded-lg flex items-center gap-2 bg-[var(--bg-soft)] border border-[var(--border)]">
                     <i class="fa-solid fa-car text-[10px] text-[var(--muted)]"></i>
@@ -1262,7 +1098,7 @@
                       <div class="text-[8px] font-bold text-[var(--fg)]">Cab</div>
                       <div class="text-[6px] text-[var(--muted)]">5 min away</div>
                     </div>
-                    <div class="text-[8px] font-bold text-[var(--fg)]">$7.49</div>
+                    <div class="text-[8px] font-bold text-[var(--fg)]">₹60</div>
                   </div>
                   <div class="p-2 rounded-lg flex items-center gap-2 bg-[var(--bg-soft)] border border-[var(--border)]">
                     <i class="fa-solid fa-car-side text-[10px] text-[var(--muted)]"></i>
@@ -1270,7 +1106,7 @@
                       <div class="text-[8px] font-bold text-[var(--fg)]">Premium</div>
                       <div class="text-[6px] text-[var(--muted)]">7 min away</div>
                     </div>
-                    <div class="text-[8px] font-bold text-[var(--fg)]">$14.99</div>
+                    <div class="text-[8px] font-bold text-[var(--fg)]">₹80</div>
                   </div>
                 </div>
                 <button class="mt-3 py-2 rounded-lg text-[9px] font-bold text-white" style="background: var(--accent);">Book Bike</button>
@@ -1344,21 +1180,21 @@
                 <div class="text-xs font-bold mb-4 text-[var(--fg)]">Payment</div>
                 <div class="rounded-xl p-3 mb-3" style="background: linear-gradient(135deg, rgba(255,107,53,0.1), rgba(58,134,255,0.05)); border: 1px solid var(--border-strong);">
                   <div class="text-[7px] text-[var(--muted)]">Total fare</div>
-                  <div class="font-display text-2xl font-bold text-[var(--accent)]">$4.20</div>
+                  <div class="font-display text-2xl font-bold text-[var(--accent)]">₹4.20</div>
                   <div class="text-[7px] text-[var(--muted)] mt-1">Bike · 3.2 km · 12 min</div>
                 </div>
                 <div class="space-y-1.5 mb-3">
                   <div class="flex justify-between text-[8px]">
                     <span class="text-[var(--muted)]">Base fare</span>
-                    <span class="text-[var(--fg)]">$2.49</span>
+                    <span class="text-[var(--fg)]">₹20</span>
                   </div>
                   <div class="flex justify-between text-[8px]">
                     <span class="text-[var(--muted)]">Distance</span>
-                    <span class="text-[var(--fg)]">$1.21</span>
+                    <span class="text-[var(--fg)]">₹1.21</span>
                   </div>
                   <div class="flex justify-between text-[8px]">
                     <span class="text-[var(--muted)]">Booking fee</span>
-                    <span class="text-[var(--fg)]">$0.50</span>
+                    <span class="text-[var(--fg)]">₹0.50</span>
                   </div>
                 </div>
                 <div class="text-[8px] font-bold mb-2 text-[var(--fg)]">Pay with</div>
@@ -1373,7 +1209,7 @@
                     <div class="flex-1 text-[8px] text-[var(--fg)]">Google Pay</div>
                   </div>
                 </div>
-                <button class="mt-3 py-2 rounded-lg text-[9px] font-bold text-white" style="background: var(--accent);">Pay $4.20</button>
+                <button class="mt-3 py-2 rounded-lg text-[9px] font-bold text-white" style="background: var(--accent);">Pay ₹4.20</button>
               </div>
             </div>
           </div>
@@ -1385,7 +1221,7 @@
 
 <!-- ============ STATISTICS ============ -->
 <section class="relative py-24 lg:py-32 overflow-hidden">
-  <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[400px] glow-coral opacity-20"></div>
+  <div class="absolute top-1/2 left-1/2 -translate-x/2 -translate-y/2 w-[800px] h-[400px] glow-coral opacity-20"></div>
   <div class="relative max-w-7xl mx-auto px-6 lg:px-10">
     <div class="text-center mb-16 reveal">
       <span class="text-xs font-semibold tracking-[0.2em] uppercase text-[var(--accent)]">Numbers That Move</span>
@@ -1414,7 +1250,7 @@
 </section>
 
 <!-- ============ CUSTOMER REVIEWS ============ -->
-<section class="relative py-24 lg:py-32 overflow-hidden" style="background: var(--bg-soft);">
+<section id="reviews" class="relative py-24 lg:py-32 overflow-hidden" style="background: var(--bg-soft);">
   <div class="relative max-w-5xl mx-auto px-6 lg:px-10">
     <div class="text-center mb-16 reveal">
       <span class="text-xs font-semibold tracking-[0.2em] uppercase text-[var(--accent)]">Loved By Riders</span>
@@ -1497,9 +1333,9 @@
 </section>
 
 <!-- ============ FINAL CTA (Fluid Wave Animation) ============ -->
-<section class="relative py-32 lg:py-40 overflow-hidden">
+<section id="contact" class="relative py-32 lg:py-40 overflow-hidden">
   <div class="absolute inset-0 bg-grid opacity-30"></div>
-  <div class="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[400px] glow-coral opacity-30"></div>
+  <div class="absolute top-0 left-1/2 -translate-x/2 w-[600px] h-[400px] glow-coral opacity-30"></div>
 
   <div class="wave-bg">
     <svg viewBox="0 0 1200 200" preserveAspectRatio="none" class="w-full h-full">
@@ -1550,7 +1386,7 @@
 </section>
 
 <!-- ============ FOOTER ============ -->
-<footer id="contact" class="relative pt-20 pb-10" style="background: var(--bg-soft); border-top: 1px solid var(--border);">
+<footer class="relative pt-20 pb-10" style="background: var(--bg-soft); border-top: 1px solid var(--border);">
   <div class="max-w-7xl mx-auto px-6 lg:px-10">
     <div class="grid lg:grid-cols-5 gap-10 mb-12">
       <div class="lg:col-span-2">
@@ -1734,55 +1570,6 @@
     });
   }, { threshold: 0.5 });
   document.querySelectorAll('.stat-number').forEach(el => statObserver.observe(el));
-
-  // ===== HOLOGRAPHIC HUD CURSOR ANIMATION =====
-  const hudRoutePath = document.getElementById('hudRoutePath');
-  const hudTraveledPath = document.getElementById('hudTraveledPath');
-  const hudCursor = document.getElementById('hudCursor');
-  const hudSpeedEl = document.getElementById('hud-speed');
-  const hudSpeed2El = document.getElementById('hud-speed-2');
-  const hdgEl = document.getElementById('hdg-val');
-  const latEl = document.getElementById('hud-lat');
-  const lonEl = document.getElementById('hud-lon');
-
-  if (hudRoutePath && hudCursor) {
-    const pathLength = hudRoutePath.getTotalLength();
-    
-    // Initialize Traveled Path
-    hudTraveledPath.style.strokeDasharray = pathLength;
-    hudTraveledPath.style.strokeDashoffset = pathLength;
-
-    let progress = 0;
-    let speed = 0.8; // Speed of the cursor
-    
-    function animateHudCursor() {
-      progress = (progress + speed) % pathLength;
-      
-      // Move Cursor
-      const point = hudRoutePath.getPointAtLength(progress);
-      hudCursor.setAttribute('transform', `translate(${point.x},${point.y})`);
-      
-      // Update Traveled Path
-      hudTraveledPath.style.strokeDashoffset = pathLength - progress;
-      
-      // Update Telematics UI randomly
-      if (Math.floor(progress) % 10 === 0) {
-        const randSpeed = Math.floor(Math.random() * 10) + 38; // 38-48
-        const randHdg = Math.floor(Math.random() * 360).toString().padStart(3, '0') + '°';
-        const randLat = (40.7128 + (Math.random() * 0.0002 - 0.0001)).toFixed(4) + '° N';
-        const randLon = (74.0060 + (Math.random() * 0.0002 - 0.0001)).toFixed(4) + '° W';
-        
-        if (hudSpeedEl) hudSpeedEl.textContent = randSpeed + ' MPH';
-        if (hudSpeed2El) hudSpeed2El.textContent = randSpeed;
-        if (hdgEl) hdgEl.textContent = randHdg;
-        if (latEl) latEl.textContent = randLat;
-        if (lonEl) lonEl.textContent = randLon;
-      }
-      
-      requestAnimationFrame(animateHudCursor);
-    }
-    animateHudCursor();
-  }
 
   // Review carousel
   const track = document.getElementById('reviewTrack');
